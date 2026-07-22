@@ -7,36 +7,35 @@ test.describe('Tworzenie nowego testu', () => {
     await page.goto('/');
 
     // 1. Kliknij przycisk "Stwórz test" w głównej nawigacji
-    await page.click('.nav-link[data-view="create"]');
-    await expect(page.locator('#createView')).toHaveClass(/active/);
+    await page.getByRole('button', { name: 'Stwórz test' }).click();
 
-    // 2. Wpisz nazwę testu
-    await page.fill('#quizTitle', 'Kolory po angielsku');
+    // 2. Wpisz nazwę testu "Moja nowa nazwa" w pole "Nazwa testu"
+    await page.getByRole('textbox', { name: 'Nazwa testu' }).fill('Moja nowa nazwa');
 
-    // 3. Wybierz poziom "A1"
-    await page.selectOption('#quizLevel', 'A1');
+    // 3. Wybierz poziom "A1" w polu "Poziom"
+    await page.getByLabel('Poziom').selectOption(['A1']);
 
-    // 4. Wpisz treść pytania
-    const firstCard = page.locator('.question-card').first();
-    await firstCard.locator('.question-prompt').fill('What color is the sky?');
+    // 4. Wpisz treść pytania "What color is the sky?" w pole treści pierwszego pytania
+    const firstQuestionCard = page.getByRole('article').filter({ hasText: 'Pytanie 1' });
+    await firstQuestionCard.getByPlaceholder('Wpisz treść pytania…').fill('What color is the sky?');
 
-    // 5. Wypełnij odpowiedzi testu wyboru, "blue" jako poprawna
-    const answers = ['blue', 'red', 'green', 'yellow'];
-    const answerRows = firstCard.locator('.answer-editor-row');
-    for (let i = 0; i < answers.length; i++) {
-      await answerRows.nth(i).locator('input[type="text"]').fill(answers[i]);
-    }
-    await answerRows.nth(0).locator('input[type="checkbox"]').check();
+    // 5. Wypełnij cztery odpowiedzi testu wyboru: "blue", "red", "green", "yellow", gdzie "blue" jest zaznaczone jako poprawna
+    await page.getByRole('textbox', { name: 'Odpowiedź A' }).fill('blue');
+    await page.getByRole('textbox', { name: 'Odpowiedź B' }).fill('red');
+    await page.getByRole('textbox', { name: 'Odpowiedź C' }).fill('green');
+    await page.getByRole('textbox', { name: 'Odpowiedź D' }).fill('yellow');
+    await expect(page.getByRole('checkbox', { name: 'blue' })).toBeChecked();
 
-    // Usuń domyślnie dodane drugie pytanie, aby zapisać test z jednym pytaniem
-    await page.locator('.question-card').nth(1).locator('.remove-question').click();
+    // Usuń domyślnie dodane drugie pytanie, aby test zawierał tylko jedno pytanie wyboru zgodnie ze scenariuszem
+    const secondQuestionCard = page.getByRole('article').filter({ hasText: 'Pytanie 2' });
+    await secondQuestionCard.getByLabel('Usuń pytanie').click();
 
-    // 6. Zapisz test
-    await page.click('#saveQuizButton');
+    // 6. Kliknij przycisk "Zapisz test"
+    await page.getByRole('button', { name: 'Zapisz test →' }).click();
 
     // Expected: powrót do widoku "Moje testy" z komunikatem i nową kartą
     await expect(page.locator('#homeView')).toHaveClass(/active/);
     await expect(page.locator('#toast')).toHaveText('Test zapisany — możesz zaczynać!');
-    await expect(page.locator('.quiz-card', { hasText: 'Kolory po angielsku' })).toBeVisible();
+    await expect(page.getByRole('button', { name: /Rozpocznij test Moja nowa nazwa/ })).toBeVisible();
   });
 });
