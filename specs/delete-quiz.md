@@ -8,4 +8,4 @@
 
 **Expected:**
 - Karta testu "Travel Essentials" nie jest już widoczna na liście testów
-- Pojawia się komunikat (toast) "Test został usunięty"
+- Pojawia się komunikat (toast) "Test usunięty z biblioteki"

@@ -628,7 +628,7 @@ function deleteQuiz(id) {
     saveQuizzes();
     if (window.firebaseDB) window.firebaseDB.deleteQuiz(id);
     renderQuizGrid();
-    showToast("Test został usunięty");
+    showToast("Test usunięty z biblioteki");
   }
 }
 

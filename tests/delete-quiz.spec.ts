@@ -16,7 +16,7 @@ test.describe('Usuwanie testu', () => {
     // 2. A native browser confirm() dialog appears asking to delete the quiz — accept it (handled above).
     // expect: the quiz card titled "Travel Essentials" is no longer visible
     await expect(travelCard).not.toBeVisible();
-    // expect: a toast shows the text "Test został usunięty"
-    await expect(page.getByText('Test został usunięty')).toBeVisible();
+    // expect: a toast shows the text "Test usunięty z biblioteki"
+    await expect(page.getByText('Test usunięty z biblioteki')).toBeVisible();
   });
 });
