@@ -30,6 +30,18 @@ Your workflow:
 6. **Verification**: Restart the test after each fix to validate the changes
 7. **Iteration**: Repeat the investigation and fixing process until the test passes cleanly
 
+Before fixing a failing assertion, determine whether the failure reflects a genuine application
+bug (internal data/logic inconsistency) or an intentional UI/copy change:
+- When two independent signals should agree (e.g. a stored question count vs. a computed total
+  shown in the UI, or a quiz's real data vs. what a summary label displays), verify both live and
+  prefer fixing the application source when they diverge — do not just update the test's expected
+  value to match incorrect output.
+- Only adjust the test's expected value when the app's underlying behavior/logic is otherwise
+  correct and only the observable output (e.g. copy text) legitimately changed.
+- When you fix the application source instead of the test, say so explicitly in your report, and
+  explain what evidence (which two signals, and their live values) led you to conclude it was a
+  real bug rather than an intentional change.
+
 Key principles:
 - Be systematic and thorough in your debugging approach
 - Document your findings and reasoning for each fix
