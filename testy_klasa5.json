@@ -1,0 +1,123 @@
+{
+  "version": 1,
+  "quizzes": [
+    {
+      "id": "klasa5-present-simple-v1",
+      "title": "Present Simple – formy",
+      "level": "A1",
+      "category": "Klasa 5",
+      "image": "",
+      "shuffleQuestions": true,
+      "shuffleAnswers": true,
+      "questions": [
+        {"type":"choice","prompt":"I ___ my phone to school.","answers":["bring","brings","bringed","am bring"],"correct":0,"correctAnswers":[0]},
+        {"type":"choice","prompt":"She ___ to music on the bus.","answers":["listens","listen","listenned","is listens"],"correct":0,"correctAnswers":[0]},
+        {"type":"choice","prompt":"We ___ lunch at school.","answers":["eat","eats","eated","is eating"],"correct":0,"correctAnswers":[0]},
+        {"type":"choice","prompt":"They ___ to school in summer.","answers":["walk","walks","walking","is walking"],"correct":0,"correctAnswers":[0]},
+        {"type":"choice","prompt":"He ___ things all the time.","answers":["loses","lose","looses","is losing"],"correct":0,"correctAnswers":[0]},
+        {"type":"choice","prompt":"You ___ Maths on Monday morning.","answers":["have","has","haves","is having"],"correct":0,"correctAnswers":[0]},
+        {"type":"choice","prompt":"Tom ___ (watch) football in the afternoon.","answers":["watches","watch","watchs","is watch"],"correct":0,"correctAnswers":[0]},
+        {"type":"choice","prompt":"Amy ___ (do) her homework after school.","answers":["does","do","doos","is do"],"correct":0,"correctAnswers":[0]},
+        {"type":"choice","prompt":"Elena ___ (love) Adele songs.","answers":["loves","love","lovs","is love"],"correct":0,"correctAnswers":[0]},
+        {"type":"choice","prompt":"Tom ___ (go) to football club on Friday.","answers":["goes","go","gos","is go"],"correct":0,"correctAnswers":[0]},
+        {"type":"choice","prompt":"Lucas ___ (play) chess at break time.","answers":["plays","play","playes","is playing"],"correct":0,"correctAnswers":[0]},
+        {"type":"fill","prompt":"Uzupełnij jednym słowem: She ___ (study) every day.","answer":"studies"},
+        {"type":"fill","prompt":"Uzupełnij jednym słowem: He ___ (fly) to London every week.","answer":"flies"},
+        {"type":"fill","prompt":"Uzupełnij jednym słowem: She ___ (wash) her hands before dinner.","answer":"washes"}
+      ]
+    },
+    {
+      "id": "klasa5-can-cant-v1",
+      "title": "Can / Can't",
+      "level": "A1",
+      "category": "Klasa 5",
+      "image": "",
+      "shuffleQuestions": true,
+      "shuffleAnswers": true,
+      "questions": [
+        {"type":"choice","prompt":"Amy ___ sing. (nie potrafi śpiewać)","answers":["can't","can","cans","is can"],"correct":0,"correctAnswers":[0]},
+        {"type":"choice","prompt":"Elena ___ sing. (potrafi śpiewać)","answers":["can","can't","cans","is can"],"correct":0,"correctAnswers":[0]},
+        {"type":"choice","prompt":"Elena ___ play the guitar. (potrafi)","answers":["can","can't","cans","is can"],"correct":0,"correctAnswers":[0]},
+        {"type":"choice","prompt":"___ you sing? (pytanie z can)","answers":["Can","Do","Are","Have"],"correct":0,"correctAnswers":[0]},
+        {"type":"choice","prompt":"Yes, I ___. (krótka odpowiedź twierdząca z can)","answers":["can","can't","do","am"],"correct":0,"correctAnswers":[0]},
+        {"type":"choice","prompt":"No, I ___. (krótka odpowiedź przecząca z can)","answers":["can't","can","don't","am not"],"correct":0,"correctAnswers":[0]},
+        {"type":"choice","prompt":"___ he skateboard? (pytanie)","answers":["Can","Does","Is","Has"],"correct":0,"correctAnswers":[0]},
+        {"type":"choice","prompt":"Yes, he ___. (krótka odpowiedź z can)","answers":["can","can't","does","is"],"correct":0,"correctAnswers":[0]},
+        {"type":"fill","prompt":"Uzupełnij: I ___ speak Spanish. (potrafię)","answer":"can"},
+        {"type":"fill","prompt":"Uzupełnij: She ___ cook. She's a chef! (potrafi)","answer":"can"},
+        {"type":"fill","prompt":"Uzupełnij: He ___ ride a bike. (nie potrafi)","answer":"can't"},
+        {"type":"fill","prompt":"Uzupełnij: ___ they swim? (pytanie ogólne)","answer":"Can"}
+      ]
+    },
+    {
+      "id": "klasa5-this-that-v1",
+      "title": "This / That / These / Those",
+      "level": "A1",
+      "category": "Klasa 5",
+      "image": "",
+      "shuffleQuestions": true,
+      "shuffleAnswers": true,
+      "questions": [
+        {"type":"choice","prompt":"___ coat is very big! (blisko mnie, jeden)","answers":["This","These","That","Those"],"correct":0,"correctAnswers":[0]},
+        {"type":"choice","prompt":"___ sausages are Al's. (blisko, wiele)","answers":["These","This","That","Those"],"correct":0,"correctAnswers":[0]},
+        {"type":"choice","prompt":"___ trainers are Rocco's. (blisko, wiele)","answers":["These","This","That","Those"],"correct":0,"correctAnswers":[0]},
+        {"type":"choice","prompt":"___ isn't my skateboard. (daleko, jeden)","answers":["That","Those","This","These"],"correct":0,"correctAnswers":[0]},
+        {"type":"choice","prompt":"___ dress is Carla's. (blisko, jeden)","answers":["This","These","That","Those"],"correct":0,"correctAnswers":[0]},
+        {"type":"choice","prompt":"What ___ this? — It's a coat.","answers":["is","are","am","be"],"correct":0,"correctAnswers":[0]},
+        {"type":"choice","prompt":"What ___ that? — It's a hat.","answers":["is","are","am","be"],"correct":0,"correctAnswers":[0]},
+        {"type":"choice","prompt":"What are ___? — They're trainers. (blisko, wiele)","answers":["these","this","that","those"],"correct":0,"correctAnswers":[0]},
+        {"type":"choice","prompt":"What are ___? — They're sausages. (daleko, wiele)","answers":["those","this","that","these"],"correct":0,"correctAnswers":[0]},
+        {"type":"fill","prompt":"Uzupełnij: ___ is my hat. (blisko mnie, jeden)","answer":"This"},
+        {"type":"fill","prompt":"Uzupełnij: ___ are my shoes. (blisko, wiele)","answer":"These"},
+        {"type":"fill","prompt":"Uzupełnij: ___ is my bag. (daleko, jeden)","answer":"That"},
+        {"type":"fill","prompt":"Uzupełnij: ___ are my trainers. (daleko, wiele)","answer":"Those"}
+      ]
+    },
+    {
+      "id": "klasa5-school-subjects-v1",
+      "title": "Przedmioty szkolne",
+      "level": "A1",
+      "category": "Klasa 5",
+      "image": "",
+      "shuffleQuestions": true,
+      "shuffleAnswers": true,
+      "questions": [
+        {"type":"choice","prompt":"We do experiments. It's interesting. What subject?","answers":["Science","Art","Maths","History"],"correct":0,"correctAnswers":[0]},
+        {"type":"choice","prompt":"We learn about the past. What subject?","answers":["History","Geography","Science","English"],"correct":0,"correctAnswers":[0]},
+        {"type":"choice","prompt":"We play football. What subject?","answers":["P.E.","Art","Music","Maths"],"correct":0,"correctAnswers":[0]},
+        {"type":"choice","prompt":"We play computer games. What subject?","answers":["Computer Studies","English","Science","P.E."],"correct":0,"correctAnswers":[0]},
+        {"type":"choice","prompt":"We play the piano and the guitar. What subject?","answers":["Music","Art","P.E.","French"],"correct":0,"correctAnswers":[0]},
+        {"type":"choice","prompt":"We learn about different countries. What subject?","answers":["Geography","History","Science","English"],"correct":0,"correctAnswers":[0]},
+        {"type":"choice","prompt":"Jak po angielsku jest 'Wychowanie fizyczne'?","answers":["P.E.","Music","Science","History"],"correct":0,"correctAnswers":[0]},
+        {"type":"choice","prompt":"Jak po angielsku jest 'Informatyka'?","answers":["Computer Studies","Science","Maths","Geography"],"correct":0,"correctAnswers":[0]},
+        {"type":"choice","prompt":"Jak po angielsku jest 'Przyroda / Biologia'?","answers":["Science","History","Art","French"],"correct":0,"correctAnswers":[0]},
+        {"type":"fill","prompt":"Uzupełnij: We do experiments in ___.","answer":"Science"},
+        {"type":"fill","prompt":"Uzupełnij: We learn about the past in ___.","answer":"History"},
+        {"type":"fill","prompt":"Uzupełnij: We play the piano and guitar in ___.","answer":"Music"}
+      ]
+    },
+    {
+      "id": "klasa5-adverbs-frequency-v1",
+      "title": "Przysłówki częstotliwości",
+      "level": "A2",
+      "category": "Klasa 5",
+      "image": "",
+      "shuffleQuestions": true,
+      "shuffleAnswers": true,
+      "questions": [
+        {"type":"order","prompt":"Ułóż zdanie: always / We / on Friday / have / Art","answer":"We always have Art on Friday.","words":["We","always","have","Art","on","Friday."]},
+        {"type":"order","prompt":"Ułóż zdanie: sometimes / are / Elena and Amy / noisy / in Science class","answer":"Elena and Amy are sometimes noisy in Science class.","words":["Elena","and","Amy","are","sometimes","noisy","in","Science","class."]},
+        {"type":"order","prompt":"Ułóż zdanie: never / I / in class / send / text messages","answer":"I never send text messages in class.","words":["I","never","send","text","messages","in","class."]},
+        {"type":"order","prompt":"Ułóż zdanie: often / We / in the park / play / football","answer":"We often play football in the park.","words":["We","often","play","football","in","the","park."]},
+        {"type":"order","prompt":"Ułóż zdanie: usually / Tom / TV / watches / after dinner","answer":"Tom usually watches TV after dinner.","words":["Tom","usually","watches","TV","after","dinner."]},
+        {"type":"order","prompt":"Ułóż zdanie: always / You / late for English / are","answer":"You are always late for English.","words":["You","are","always","late","for","English."]},
+        {"type":"choice","prompt":"Gdzie stoi przysłówek z czasownikiem BE?","answers":["Za BE (I am always happy.)","Przed BE (I always am happy.)","Na końcu zdania","Na początku zdania"],"correct":0,"correctAnswers":[0]},
+        {"type":"choice","prompt":"Gdzie stoi przysłówek z innymi czasownikami?","answers":["Przed czasownikiem (I never listen to music.)","Za czasownikiem","Na końcu zdania","Na początku zdania"],"correct":0,"correctAnswers":[0]},
+        {"type":"fill","prompt":"Uzupełnij jednym słowem: I ___ listen to music. (zawsze)","answer":"always"},
+        {"type":"fill","prompt":"Uzupełnij jednym słowem: He is ___ late for school. (często)","answer":"often"},
+        {"type":"fill","prompt":"Uzupełnij jednym słowem: We ___ watch TV. (czasami)","answer":"sometimes"},
+        {"type":"fill","prompt":"Uzupełnij jednym słowem: She ___ reads books. (zwykle)","answer":"usually"}
+      ]
+    }
+  ]
+}

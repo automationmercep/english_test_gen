@@ -1,0 +1,302 @@
+<!doctype html>
+<html lang="pl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#f7f4ec" />
+    <title>Bright English — ucz się po swojemu</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Fraunces:opsz,wght@9..144,600;9..144,700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <header class="topbar">
+      <button class="brand" id="homeButton" aria-label="Przejdź do strony głównej">
+        <span class="brand-mark" aria-hidden="true">B</span>
+        <span>Bright <em>English</em></span>
+      </button>
+      <nav aria-label="Główna nawigacja">
+        <button class="nav-link active" data-view="home">Moje testy</button>
+        <button class="nav-link" data-view="create">Stwórz test</button>
+      </nav>
+      <div id="authSection" class="auth-section">
+        <button id="loginButton" class="auth-button" type="button">🔒 Zaloguj się</button>
+        <div id="userInfo" class="user-info" hidden>
+          <img id="userAvatar" class="user-avatar" src="" alt="Avatar" hidden />
+          <span id="userName" class="user-name"></span>
+          <button id="logoutButton" class="auth-button auth-logout" type="button">Wyloguj</button>
+        </div>
+      </div>
+      <div class="sound-controls">
+        <div class="theme-picker-wrap">
+          <button class="theme-toggle" id="themeToggle" aria-label="Zmień motyw aplikacji" title="Zmień motyw">
+            <span class="theme-dot" aria-hidden="true"></span><span class="theme-label">Motyw</span>
+          </button>
+          <div class="theme-panel" id="themePanel" hidden>
+            <p class="theme-panel-title">Wybierz motyw</p>
+            <div class="theme-swatches">
+              <button class="theme-swatch" data-theme="forest" title="Las (domyślny)" aria-label="Motyw: Las"></button>
+              <button class="theme-swatch" data-theme="ocean" title="Ocean" aria-label="Motyw: Ocean"></button>
+              <button class="theme-swatch" data-theme="sunset" title="Zachód słońca" aria-label="Motyw: Zachód słońca"></button>
+              <button class="theme-swatch" data-theme="lavender" title="Lawenda" aria-label="Motyw: Lawenda"></button>
+              <button class="theme-swatch" data-theme="night" title="Noc" aria-label="Motyw: Noc"></button>
+            </div>
+          </div>
+        </div>
+        <button class="sound-toggle" id="soundToggle" aria-label="Wyłącz dźwięki" title="Dźwięki włączone">
+          <span aria-hidden="true">♪</span><span class="sound-label">Dźwięk</span>
+        </button>
+        <button class="sound-toggle" id="musicToggle" aria-label="Wyłącz muzykę w tle" title="Muzyka włączona">
+          <span aria-hidden="true">♫</span><span class="sound-label">Muzyka</span>
+        </button>
+        <button class="sound-settings" id="soundSettings" type="button" aria-label="Konfiguruj komunikaty dźwiękowe" title="Konfiguruj komunikaty">
+          <span aria-hidden="true">⚙</span><span class="sound-settings-label">Komunikaty</span>
+        </button>
+        <div class="data-actions-wrap">
+          <button id="toggleDataPanel" class="sound-settings data-toggle" type="button" aria-expanded="false" aria-controls="dataActionsPanel" title="Dane (eksport / import)">
+            <span aria-hidden="true">↓↑</span><span class="sound-settings-label">Dane</span>
+          </button>
+          <div id="dataActionsPanel" class="data-actions-panel" hidden>
+            <button id="exportData" class="data-panel-item" type="button"><span aria-hidden="true">↑</span> Eksportuj dane</button>
+            <label class="data-panel-item" for="importDataFile"><span aria-hidden="true">↓</span> Importuj dane</label>
+            <input id="importDataFile" type="file" accept=".json,application/json" hidden />
+            <label class="data-panel-item" for="mergeQuizzesFile"><span aria-hidden="true">✚</span> Dodaj testy</label>
+            <input id="mergeQuizzesFile" type="file" accept=".json,application/json" hidden />
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <main>
+      <section id="homeView" class="view home-view active" aria-labelledby="homeTitle">
+        <div class="hero">
+          <div class="hero-copy">
+            <span class="eyebrow">Angielski na dobry dzień</span>
+            <h1 id="homeTitle">Małe kroki.<br /><span>Wielki postęp.</span></h1>
+            <p>Ćwicz słownictwo i gramatykę w krótkich, angażujących testach. Bez presji — we własnym tempie.</p>
+            <button class="button button-dark" id="startFeatured">
+              Zacznij ćwiczyć <span aria-hidden="true">→</span>
+            </button>
+          </div>
+          <div class="hero-art" aria-hidden="true">
+            <div class="word-card word-card-one"><small>Dzisiaj</small><button id="dailyWordsSettings" class="word-settings" type="button" aria-label="Edytuj listę słówek" title="Edytuj listę słówek">⚙</button><strong id="dailyWord">curious</strong><span id="dailyPronunciation">/ˈkjʊə.ri.əs/</span></div>
+            <div class="word-card word-card-two"><span id="dailyTranslation">ciekawy</span><b>✓</b></div>
+            <div class="orbit orbit-one"></div>
+            <div class="orbit orbit-two"></div>
+            <span class="spark spark-one">✦</span><span class="spark spark-two">✦</span>
+          </div>
+        </div>
+
+        <div class="section-heading">
+          <div><span class="eyebrow">Twoja biblioteka</span><h2>Wybierz test</h2></div>
+          <div class="library-actions">
+            <button class="button button-outline" data-view="create"><span aria-hidden="true">＋</span> Nowy test</button>
+            <button id="addCategory" class="button button-category" type="button"><span aria-hidden="true">▱</span> Nowa kategoria</button>
+          </div>
+        </div>
+        <div id="categoryTabs" class="category-tabs" role="tablist" aria-label="Kategorie testów"></div>
+        <div id="quizGrid" class="quiz-grid"></div>
+      </section>
+
+      <section id="createView" class="view create-view" aria-labelledby="createTitle">
+        <div class="creator-header">
+          <button class="back-button" data-view="home" aria-label="Wróć do biblioteki">←</button>
+          <div><span class="eyebrow">Kreator aktywności</span><h1 id="createTitle">Stwórz nowy test</h1><p>Dodaj pytania, zaznacz poprawne odpowiedzi i gotowe.</p></div>
+        </div>
+        <form id="quizForm" class="creator-layout">
+          <aside class="creator-sidebar">
+            <label class="field-label" for="quizTitle">Nazwa testu</label>
+            <input id="quizTitle" class="text-input" required maxlength="70" placeholder="np. English at the airport" />
+            <label class="field-label" for="quizLevel">Poziom</label>
+            <select id="quizLevel" class="text-input"><option>A1</option><option>A2</option><option selected>B1</option><option>B2</option><option>C1</option></select>
+            <label class="field-label" for="quizCategory">Kategoria</label>
+            <div class="category-combobox">
+              <input id="quizCategory" class="text-input category-input" maxlength="30" placeholder="Wybierz lub wpisz nową…" role="combobox" aria-autocomplete="list" aria-controls="categoryDropdown" aria-expanded="false" autocomplete="off" />
+              <button type="button" id="categoryDropdownToggle" aria-label="Pokaż istniejące kategorie" aria-expanded="false">⌄</button>
+              <div id="categoryDropdown" class="category-dropdown" role="listbox" aria-label="Istniejące kategorie" hidden></div>
+            </div>
+            <span class="field-label">Obrazek testu</span>
+            <div class="image-picker">
+              <div id="imagePreview" class="image-preview"><span aria-hidden="true">▧</span><small>Brak obrazka</small></div>
+              <div class="image-picker-actions"><label class="image-file-button" for="quizImage">Wybierz plik</label><button type="button" id="removeQuizImage" hidden>Usuń</button></div>
+              <input id="quizImage" type="file" accept="image/jpeg,image/png,image/webp,image/gif" hidden />
+              <label class="url-label" for="quizImageUrl">lub wklej adres obrazka</label>
+              <input id="quizImageUrl" class="image-url-input" type="url" placeholder="https://…" />
+              <div class="image-search-row">
+                <input id="imageSearchQuery" class="image-url-input" type="text" placeholder="Szukaj zdjęcia… np. dog, beach" autocomplete="off" />
+                <button type="button" id="imageSearchBtn" class="image-search-btn">🔍 Szukaj</button>
+              </div>
+              <div id="imageSearchResults" class="image-search-results" hidden></div>
+            </div>
+            <span class="field-label">Losowanie</span>
+            <div class="shuffle-settings">
+              <label class="switch-row"><span><strong>Losuj pytania</strong><small>Inna kolejność przy każdym podejściu</small></span><input id="shuffleQuestions" type="checkbox" checked /><i aria-hidden="true"></i></label>
+              <label class="switch-row"><span><strong>Losuj odpowiedzi</strong><small>Mieszaj warianty A–D</small></span><input id="shuffleAnswers" type="checkbox" checked /><i aria-hidden="true"></i></label>
+            </div>
+            <div class="creator-tip"><span>✦</span><p><strong>Dobra praktyka</strong><br />Najlepsze testy mają od 5 do 10 krótkich pytań.</p></div>
+          </aside>
+          <div class="question-builder">
+            <section class="csv-import" aria-labelledby="csvImportTitle">
+              <div class="csv-import-heading">
+                <div><span class="import-icon" aria-hidden="true">↓</span><div><h2 id="csvImportTitle">Wklej pytania z CSV</h2><p>Jeden wiersz = jedno pytanie. Kilka poprawnych odpowiedzi rozdziel znakiem | w drugim polu. Opcjonalne polecenie nad pytaniem wpisz w nawiasach kwadratowych na początku pierwszego pola, np. <code>[Complete the sentence] pytanie…</code>.</p></div></div>
+                <div class="csv-import-actions">
+                  <button type="button" id="openVerbGenerator" class="button button-outline">🧩 Generator odmiany</button>
+                  <button type="button" id="importCsv" class="button button-outline">Wczytaj pytania</button>
+                </div>
+              </div>
+              <textarea id="csvInput" class="csv-textarea" rows="5" spellcheck="false" placeholder="Kolory flagi Polski?, biały|czerwony, niebieski, zielony, choice&#10;[Complete the sentence] I ___ coffee every day., drink, fill&#10;Ułóż poprawne zdanie., I love you., order&#10;curious, ciekawy, fiszka&#10;brave, odważny, fiszka&#10;Dopasuj słowa., ruler=linijka, pencil case=piórnik, scissors=nożyczki, match"></textarea>
+              <div class="csv-format"><span>1</span> pytanie / awers <b>→</b> <span>2</span> poprawna odpowiedź / rewers <b>→</b> <span>3–5</span> błędne (choice) / pary lewa=prawa (match) <b>→</b> <span>ostatnie</span> choice / fill / order / fiszka / match<button type="button" id="copyCsvFormat" class="copy-format-btn" title="Kopiuj przykład do schowka">📋 Kopiuj przykład</button></div>
+            </section>
+            <section class="bulk-type-bar" aria-label="Zmień typ wszystkich pytań">
+              <div><strong>Typ wszystkich pytań</strong><small>Zmień cały test jednym kliknięciem</small></div>
+              <div><button type="button" data-bulk-type="choice">Test wyboru</button><button type="button" data-bulk-type="fill">Uzupełnij zdanie</button><button type="button" data-bulk-type="order">Uporządkuj</button><button type="button" data-bulk-type="match">Dopasuj</button><button type="button" data-bulk-type="flashcard">Fiszka</button></div>
+            </section>
+            <div id="questionList"></div>
+            <button type="button" id="addQuestion" class="add-question">＋ Dodaj kolejne pytanie</button>
+            <div class="creator-actions"><button type="button" class="button button-ghost" data-view="home">Anuluj</button><button type="submit" id="saveQuizButton" class="button button-dark">Zapisz test <span>→</span></button></div>
+          </div>
+        </form>
+      </section>
+
+      <section id="playView" class="view play-view" aria-live="polite">
+        <div class="play-topline">
+          <button id="exitQuiz" class="icon-button" aria-label="Zakończ test">×</button>
+          <div class="progress-track"><div id="progressFill" class="progress-fill"></div></div>
+          <span id="progressText" class="progress-text">1 / 5</span>
+          <span id="questionTimerBadge" class="question-timer-badge" hidden></span>
+        </div>
+        <div id="questionTimerBar" class="question-timer-bar" hidden>
+          <div id="questionTimerFill" class="question-timer-fill"></div>
+        </div>
+        <div class="quiz-stage">
+          <div id="questionMeta" class="question-meta"></div>
+          <h1 id="questionText"></h1>
+          <p id="questionHint" class="question-hint"></p>
+          <div id="answerArea" class="answer-area"></div>
+          <div id="feedback" class="feedback" role="status"></div>
+          <div id="autoAdvanceCountdown" class="auto-advance-countdown" role="timer" aria-live="polite" hidden></div>
+          <div class="question-navigation">
+            <button id="previousQuestion" class="button button-outline previous-button" type="button">← Poprzednie pytanie</button>
+            <button id="checkAnswer" class="button button-dark check-button" disabled>Sprawdź odpowiedź</button>
+          </div>
+          <img id="playQuizImage" class="play-quiz-image" alt="Obrazek testu" hidden />
+        </div>
+      </section>
+
+      <section id="resultsView" class="view results-view" aria-labelledby="resultTitle">
+        <div class="result-hero">
+          <div class="score-ring"><strong id="scorePercent">0%</strong><span>Twój wynik</span></div>
+          <div><span class="eyebrow">Test zakończony</span><h1 id="resultTitle">Świetna robota!</h1><p id="resultSubtitle"></p></div>
+        </div>
+        <div class="result-stats"><div><span class="stat-icon green">✓</span><p>Poprawne<strong id="correctCount">0</strong></p></div><div><span class="stat-icon coral">×</span><p>Do powtórki<strong id="wrongCount">0</strong></p></div><div><span class="stat-icon yellow">◎</span><p>Łącznie<strong id="totalCount">0</strong></p></div></div>
+        <div class="review-section"><div class="section-heading compact"><div><span class="eyebrow">Podsumowanie</span><h2>Każde pytanie</h2></div></div><div id="reviewList" class="review-list"></div></div>
+        <div class="result-actions"><button id="retryWrong" class="button button-coral" hidden>↺ Powtórz błędne pytania</button><button id="retryQuiz" class="button button-outline">↻ Spróbuj ponownie</button><button class="button button-dark" data-view="home">Wróć do testów →</button></div>
+      </section>
+    </main>
+    <div id="categoryModal" class="modal-backdrop" hidden>
+      <form id="categoryForm" class="category-modal" role="dialog" aria-modal="true" aria-labelledby="categoryModalTitle">
+        <span class="eyebrow">Nowa zakładka</span>
+        <h2 id="categoryModalTitle">Dodaj kategorię</h2>
+        <p>Utwórz pustą zakładkę, a później przeciągnij do niej testy.</p>
+        <label class="field-label" for="newCategoryName">Nazwa kategorii</label>
+        <input id="newCategoryName" class="text-input" maxlength="40" placeholder="np. Słownictwo" autocomplete="off" required />
+        <div class="modal-actions">
+          <button id="cancelCategory" class="button button-ghost" type="button">Anuluj</button>
+          <button class="button button-dark" type="submit">Dodaj kategorię</button>
+        </div>
+      </form>
+    </div>
+    <div id="deleteCategoryModal" class="modal-backdrop" hidden>
+      <div class="category-modal danger-modal" role="alertdialog" aria-modal="true" aria-labelledby="deleteCategoryTitle" aria-describedby="deleteCategoryDescription">
+        <span class="eyebrow">Usuń zakładkę</span>
+        <h2 id="deleteCategoryTitle">Usunąć kategorię?</h2>
+        <p id="deleteCategoryDescription"></p>
+        <div class="danger-note">Tej operacji nie można cofnąć.</div>
+        <div class="modal-actions">
+          <button id="cancelDeleteCategory" class="button button-ghost" type="button">Anuluj</button>
+          <button id="confirmDeleteCategory" class="button button-danger" type="button">Usuń kategorię i testy</button>
+        </div>
+      </div>
+    </div>
+    <div id="soundMessagesModal" class="modal-backdrop" hidden>
+      <form id="soundMessagesForm" class="category-modal sound-messages-modal" role="dialog" aria-modal="true" aria-labelledby="soundMessagesTitle">
+        <span class="eyebrow">Ustawienia głosu</span>
+        <h2 id="soundMessagesTitle">Komunikaty dźwiękowe</h2>
+        <p>Wpisz tekst dodatkowego komunikatu. Puste pole go wyłączy; pełne poprawne zdanie jest czytane zawsze.</p>
+        <div class="sound-message-fields">
+          <label><span>Poprawna odpowiedź</span><input id="correctSoundText" class="text-input" maxlength="120" /></label>
+          <label><span>Błędna odpowiedź</span><input id="wrongSoundText" class="text-input" maxlength="120" /></label>
+          <label><span>Wynik 100%</span><input id="perfectSoundText" class="text-input" maxlength="120" /></label>
+          <label><span>Wynik poniżej 100%</span><input id="belowPerfectSoundText" class="text-input" maxlength="120" /></label>
+          <label class="auto-advance-setting"><span>Automatyczne przejście (sekundy)</span><input id="autoAdvanceSeconds" class="text-input" type="number" min="0" max="60" step="1" value="5" /><small>Wpisz 0, aby wyłączyć automatyczne przechodzenie.</small></label>
+          <label class="auto-advance-setting"><span>Czas na pytanie (sekundy)</span><input id="questionTimeLimit" class="text-input" type="number" min="0" max="300" step="5" value="0" /><small>Wpisz 0, aby wyłączyć licznik. Przy upływie czasu odpowiedź jest błędna.</small></label>
+          <label class="switch-row sound-read-row">
+            <span><strong>Czytaj poprawne zdanie</strong><small>Lektorka czyta pełne zdanie z odpowiedzią po każdym pytaniu.</small></span>
+            <input id="readAnswerToggle" type="checkbox" checked /><i aria-hidden="true"></i>
+          </label>
+        </div>
+        <div class="modal-actions">
+          <button id="cancelSoundMessages" class="button button-ghost" type="button">Anuluj</button>
+          <button class="button button-dark" type="submit">Zapisz komunikaty</button>
+        </div>
+      </form>
+    </div>
+    <div id="dailyWordsModal" class="modal-backdrop" hidden>
+      <form id="dailyWordsForm" class="category-modal daily-words-modal" role="dialog" aria-modal="true" aria-labelledby="dailyWordsTitle">
+        <span class="eyebrow">Słówko dnia</span>
+        <h2 id="dailyWordsTitle">Lista słówek</h2>
+        <p>Wklej jedno słówko w każdym wierszu: angielskie słowo i polskie tłumaczenie.</p>
+        <label class="field-label" for="dailyWordsInput">Lista CSV</label>
+        <textarea id="dailyWordsInput" class="daily-words-input" rows="11" placeholder="curious, ciekawy&#10;brave, odważny" required></textarea>
+        <div class="word-list-format"><span>1. słowo</span><b>→</b><span>2. tłumaczenie</span><button type="button" id="copyDailyWordsFormat" class="copy-format-btn" title="Kopiuj przykład do schowka">📋 Kopiuj przykład</button></div>
+        <div class="modal-actions word-list-actions">
+          <button id="restoreDailyWords" class="button button-ghost" type="button">Przywróć domyślne</button>
+          <span class="modal-action-spacer"></span>
+          <button id="cancelDailyWords" class="button button-ghost" type="button">Anuluj</button>
+          <button class="button button-dark" type="submit">Zapisz listę</button>
+        </div>
+      </form>
+    </div>
+    <div id="verbGeneratorModal" class="modal-backdrop" hidden>
+      <form id="verbGeneratorForm" class="category-modal verb-generator-modal" role="dialog" aria-modal="true" aria-labelledby="verbGeneratorTitle">
+        <span class="eyebrow">Generator pytań</span>
+        <h2 id="verbGeneratorTitle">Odmiana czasownika</h2>
+        <p>Wpisz czasowniki (jeden w wierszu), wybierz czasy, formy zdań i podmioty — możesz zaznaczyć kilka naraz (np. Present + Past, Twierdzenie + Pytanie), a aplikacja wygeneruje wszystkie kombinacje i wklei je do pola CSV.</p>
+        <label class="field-label">Czas</label>
+        <div id="verbGeneratorTense" class="verb-tense-switch">
+          <label class="verb-tense-option active"><input type="checkbox" value="present" checked /><span>Present Simple</span></label>
+          <label class="verb-tense-option"><input type="checkbox" value="past" /><span>Past Simple</span></label>
+        </div>
+        <label class="field-label">Forma zdania</label>
+        <div id="verbGeneratorFormType" class="verb-tense-switch">
+          <label class="verb-tense-option active"><input type="checkbox" value="statement" checked /><span>Twierdzenie</span></label>
+          <label class="verb-tense-option"><input type="checkbox" value="question" /><span>Pytanie</span></label>
+        </div>
+        <label class="field-label" for="verbGeneratorVerbs">Czasowniki</label>
+        <textarea id="verbGeneratorVerbs" class="csv-textarea" rows="5" spellcheck="false" placeholder="watch, football in the afternoon/evening&#10;go, to school by bus&#10;play, tennis on Sundays"></textarea>
+        <div class="word-list-format"><span>1. czasownik</span><b>→</b><span>2. reszta zdania (opcjonalnie)</span><button type="button" id="copyVerbGeneratorFormat" class="copy-format-btn" title="Kopiuj przykład do schowka">📋 Kopiuj przykład</button></div>
+        <p class="fill-editor-note">Czasowniki nieregularne (np. go, have, be) są odmieniane automatycznie ze słownika. Jeśli aplikacja poda złą formę, wpisz własną po znaku „=”, np. <code>go=went</code>.</p>
+        <label class="field-label">Podmioty</label>
+        <div id="verbGeneratorSubjects" class="verb-subject-grid">
+          <label class="verb-subject-option"><input type="checkbox" value="I" checked /><span>I</span></label>
+          <label class="verb-subject-option"><input type="checkbox" value="You" checked /><span>You</span></label>
+          <label class="verb-subject-option"><input type="checkbox" value="He" checked /><span>He</span></label>
+          <label class="verb-subject-option"><input type="checkbox" value="She" checked /><span>She</span></label>
+          <label class="verb-subject-option"><input type="checkbox" value="It" /><span>It</span></label>
+          <label class="verb-subject-option"><input type="checkbox" value="We" checked /><span>We</span></label>
+          <label class="verb-subject-option"><input type="checkbox" value="They" checked /><span>They</span></label>
+        </div>
+        <label class="field-label" for="verbGeneratorNames">Dodatkowe imiona (traktowane jak he/she)</label>
+        <input id="verbGeneratorNames" class="text-input" maxlength="120" placeholder="np. Tom, Anna" autocomplete="off" />
+        <div class="modal-actions">
+          <button id="cancelVerbGenerator" class="button button-ghost" type="button">Anuluj</button>
+          <button class="button button-dark" type="submit">Wygeneruj i wklej do CSV</button>
+        </div>
+      </form>
+    </div>
+    <div id="toast" class="toast" role="status"></div>
+    <script src="app.js" defer></script>
+    <script type="module" src="firebase.js"></script>
+  </body>
+</html>

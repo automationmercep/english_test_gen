@@ -1,0 +1,15 @@
+{
+  "name": "english_training",
+  "version": "1.0.0",
+  "description": "Lekka aplikacja webowa do tworzenia i rozwiązywania testów języka angielskiego.",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@playwright/test": "^1.61.1"
+  }
+}
