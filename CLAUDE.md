@@ -6,6 +6,13 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 "Bright English" (Polish UI) — a single-page, no-build web app for creating and taking English-learning quizzes. No framework, no bundler: `index.html` + `app.js` (vanilla JS, ~2100 lines) + `styles.css`. All app UI strings are in Polish.
 
+## Repo and deployment
+
+- Source lives at https://github.com/automationmercep/english_test_gen (public repo, default branch `main`).
+- The live app is deployed via GitHub Pages directly from `main` (root folder) at https://automationmercep.github.io/english_test_gen/ — no build step, no GitHub Actions workflow; GitHub serves the static files as-is on every push to `main`.
+- `firebase.json`/`firestore.rules`/`.firebaserc` configure Firebase Hosting + Firestore as an *alternative* deploy target that exists but isn't the one currently in use — don't assume `firebase deploy` is how the live site gets updated.
+- Google sign-in requires the serving domain to be in Firebase Authentication's "Authorized domains" list; `automationmercep.github.io` has been added there alongside `localhost`.
+
 ## Running it
 
 ```powershell
