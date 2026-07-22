@@ -9,7 +9,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Repo and deployment
 
 - Source lives at https://github.com/automationmercep/english_test_gen (public repo, default branch `main`).
-- The live app is deployed via GitHub Pages directly from `main` (root folder) at https://automationmercep.github.io/english_test_gen/ — no build step, no GitHub Actions workflow; GitHub serves the static files as-is on every push to `main`.
+- The live app is deployed via GitHub Pages directly from `main` (root folder) at https://automationmercep.github.io/english_test_gen/ — no build step; GitHub serves the static files as-is on every push to `main`.
+- `.github/workflows/tests.yml` runs the Playwright suite on every push/PR to `main`. On push to `main`, it also commits the generated HTML report to `test-reports/latest/` and pushes it back — since Pages already serves `main`/root, the latest report (with per-test video and failure screenshots) is viewable at https://automationmercep.github.io/english_test_gen/test-reports/latest/. That workflow-triggered commit is `[skip ci]` and the workflow ignores `test-reports/**` pushes, so publishing the report doesn't re-trigger itself.
 - `firebase.json`/`firestore.rules`/`.firebaserc` configure Firebase Hosting + Firestore as an *alternative* deploy target that exists but isn't the one currently in use — don't assume `firebase deploy` is how the live site gets updated.
 - Google sign-in requires the serving domain to be in Firebase Authentication's "Authorized domains" list; `automationmercep.github.io` has been added there alongside `localhost`.
 
