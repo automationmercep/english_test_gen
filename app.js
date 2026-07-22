@@ -645,6 +645,9 @@ function buildPrintableQuestionHtml(question, index) {
   if (question.type === "flashcard") {
     return `<div class="print-question"><p><strong>${number}.</strong> ${escapeHtml(question.prompt)}</p><p class="print-answer-line">Tłumaczenie: ______________________________________________</p></div>`;
   }
+  if (question.type === "correct") {
+    return `<div class="print-question"><p><strong>${number}.</strong> Znajdź i popraw błąd: ${escapeHtml(question.prompt)}</p><p class="print-answer-line">Poprawnie: ______________________________________________</p></div>`;
+  }
   if (question.type === "match") {
     const lefts = shuffled(question.pairs.map(pair => pair.left));
     const rows = question.pairs.map(pair => `<li>${escapeHtml(pair.right)} — ______________________________</li>`).join("");
@@ -663,6 +666,8 @@ function buildAnswerKeyHtml(question, index) {
     answerText = question.answer;
   } else if (question.type === "match") {
     answerText = question.pairs.map(pair => `${pair.left} → ${pair.right}`).join(", ");
+  } else if (question.type === "correct") {
+    answerText = `${question.wrong} → ${acceptedAnswers(question.answer)[0] || question.answer}`;
   } else {
     answerText = question.answer;
   }
@@ -819,7 +824,7 @@ function renderQuestion() {
   clearAutoAdvance();
   clearQuestionTimer();
   const question = activeQuiz.questions[questionIndex];
-  selectedAnswer = question.type === "choice" || question.type === "order" ? [] : question.type === "match" ? {} : null; hasChecked = false;
+  selectedAnswer = question.type === "choice" || question.type === "order" ? [] : question.type === "match" ? {} : question.type === "correct" ? { wordIndex: null, fix: "" } : null; hasChecked = false;
   matchSelectedTileId = null;
   const playImage = $("#playQuizImage");
   playImage.hidden = true;
@@ -834,7 +839,7 @@ function renderQuestion() {
   $(".quiz-stage").classList.toggle("picture-mode", Boolean(questionImage));
   $("#progressFill").style.width = `${((questionIndex + 1) / activeQuiz.questions.length) * 100}%`;
   $("#progressText").textContent = `${questionIndex + 1} / ${activeQuiz.questions.length}`;
-  $("#questionMeta").textContent = question.instruction || (question.type === "choice" ? "Wybierz odpowiedź" : question.type === "order" ? "Uporządkuj zdanie" : question.type === "match" ? "Dopasuj" : question.type === "flashcard" ? "Fiszka" : "Uzupełnij zdanie");
+  $("#questionMeta").textContent = question.instruction || (question.type === "choice" ? "Wybierz odpowiedź" : question.type === "order" ? "Uporządkuj zdanie" : question.type === "match" ? "Dopasuj" : question.type === "flashcard" ? "Fiszka" : question.type === "correct" ? "Popraw błąd" : "Uzupełnij zdanie");
   setQuestionText(question.prompt);
   const requiredChoices = question.type === "choice" ? getCorrectIndexes(question).length : 0;
   if (!question.instruction && question.type === "choice" && requiredChoices > 1) $("#questionMeta").textContent = "Wybierz odpowiedzi";
@@ -843,6 +848,7 @@ function renderQuestion() {
     : question.type === "order" ? "Klikaj lub przeciągaj słowa, aby ułożyć poprawne zdanie."
     : question.type === "match" ? "Przeciągnij kolorowe kafelki na właściwe pola lub kliknij kafelek, a potem pole."
     : question.type === "flashcard" ? "Kliknij \u201ePokaż odpowiedź\u201d, a następnie oceń, czy ją znałeś."
+    : question.type === "correct" ? "Kliknij błędne słowo w zdaniu, a następnie wpisz jego poprawną formę."
     : "Wpisz brakujące słowo lub wyrażenie.";
   $("#feedback").className = "feedback"; $("#feedback").innerHTML = "";
   const area = $("#answerArea");
@@ -858,6 +864,8 @@ function renderQuestion() {
     const hiddenCard = $(".flashcard-back-hidden", area);
     hiddenCard.addEventListener("click", () => { if (!hasChecked) revealFlashcard(question); });
     hiddenCard.addEventListener("keydown", event => { if ((event.key === "Enter" || event.key === " ") && !hasChecked) { event.preventDefault(); revealFlashcard(question); } });
+  } else if (question.type === "correct") {
+    renderCorrectAnswer(question);
   } else {
     area.innerHTML = '<input class="fill-answer" id="fillInput" autocomplete="off" placeholder="Wpisz odpowiedź…" aria-label="Twoja odpowiedź" />';
     const input = $("#fillInput");
@@ -871,6 +879,31 @@ function renderQuestion() {
   const check = $("#checkAnswer"); check.hidden = false; check.textContent = question.type === "flashcard" ? "Pokaż odpowiedź" : "Sprawdź odpowiedź"; check.disabled = question.type !== "flashcard";
   if (savedResult) restoreCheckedQuestion(question, savedResult);
   else startQuestionTimer();
+}
+
+function renderCorrectAnswer(question, disabled = false) {
+  const area = $("#answerArea");
+  const tokens = correctTokens(question.prompt);
+  const selectedIndex = selectedAnswer && typeof selectedAnswer.wordIndex === "number" ? selectedAnswer.wordIndex : null;
+  const fixValue = selectedAnswer ? selectedAnswer.fix || "" : "";
+  const wordsHtml = tokens.map((token, i) => `<button type="button" class="correct-word ${selectedIndex === i ? "selected" : ""}" data-index="${i}" ${disabled ? "disabled" : ""}>${escapeHtml(token)}</button>`).join(" ");
+  const inputHtml = `<div class="correct-fix ${selectedIndex === null ? "hidden" : ""}"><label>Wpisz poprawną formę:</label><input class="fill-answer correct-fix-input" autocomplete="off" placeholder="Poprawne słowo…" aria-label="Poprawna forma słowa" value="${escapeHtml(fixValue)}" ${disabled ? "disabled" : ""} /></div>`;
+  area.innerHTML = `<div class="correct-sentence" role="group" aria-label="Zdanie z błędem">${wordsHtml}</div>${inputHtml}`;
+  if (disabled) return;
+  const syncCheckState = () => { $("#checkAnswer").disabled = selectedAnswer.wordIndex === null || !selectedAnswer.fix; };
+  const focusInput = () => { const input = $(".correct-fix-input", area); if (input) { input.focus(); input.select(); } };
+  $$(".correct-word", area).forEach(button => button.addEventListener("click", () => {
+    selectedAnswer.wordIndex = Number(button.dataset.index);
+    renderCorrectAnswer(question);
+    requestAnimationFrame(() => { const input = $(".correct-fix-input"); if (input && !input.disabled) input.focus(); });
+  }));
+  const input = $(".correct-fix-input", area);
+  if (input) {
+    input.addEventListener("input", () => { selectedAnswer.fix = input.value.trim(); syncCheckState(); });
+    input.addEventListener("keydown", event => { if (event.key === "Enter" && selectedAnswer.wordIndex !== null && input.value.trim()) checkOrNext(); });
+    if (selectedIndex !== null) requestAnimationFrame(() => focusInput());
+  }
+  syncCheckState();
 }
 
 function renderOrderAnswer(question, disabled = false) {
@@ -992,6 +1025,12 @@ function selectChoice(index) {
 }
 
 function normalize(value) { return String(value).trim().toLocaleLowerCase("en").replace(/[.!?]$/, ""); }
+function acceptedAnswers(answer) { return String(answer || "").split("|").map(part => part.trim()).filter(Boolean); }
+function matchesTextAnswer(userValue, answer) { const norm = normalize(userValue); return acceptedAnswers(answer).some(variant => normalize(variant) === norm); }
+function correctTokens(prompt) { return String(prompt || "").split(/\s+/).filter(Boolean); }
+function normalizeToken(token) { return String(token).replace(/^[^\p{L}\p{N}']+|[^\p{L}\p{N}']+$/gu, "").toLocaleLowerCase("en"); }
+function correctWrongIndex(question) { const target = normalizeToken(question.wrong || ""); return correctTokens(question.prompt).findIndex(token => normalizeToken(token) === target); }
+function buildCorrectedSentence(question) { const tokens = correctTokens(question.prompt); const index = correctWrongIndex(question); const fix = acceptedAnswers(question.answer)[0] || ""; if (index >= 0) tokens[index] = tokens[index].replace(/\p{L}[\p{L}\p{N}']*/u, fix); return tokens.join(" "); }
 function clearAutoAdvance() {
   clearTimeout(autoAdvanceTimer);
   clearInterval(autoAdvanceCountdownTimer);
@@ -1043,16 +1082,19 @@ function checkOrNext() {
     ? selectedIndexes.length === correctIndexes.length && selectedIndexes.every((index, position) => index === [...correctIndexes].sort((a, b) => a - b)[position])
     : question.type === "order" ? normalize(selectedAnswer.map(id => question.wordTiles.find(tile => tile.id === id)?.word || "").join(" ")) === normalize(question.answer)
     : question.type === "match" ? question.pairs.every((pair, i) => selectedAnswer[i] === i)
-    : normalize(selectedAnswer) === normalize(question.answer);
+    : question.type === "correct" ? selectedAnswer.wordIndex === correctWrongIndex(question) && matchesTextAnswer(selectedAnswer.fix, question.answer)
+    : matchesTextAnswer(selectedAnswer, question.answer);
   const correctText = question.type === "choice" ? correctIndexes.map(index => question.answers[index]).join(", ")
     : question.type === "match" ? question.pairs.map(pair => `${pair.left} → ${pair.right}`).join(", ")
-    : question.answer;
-  const correctSentence = buildCorrectSentence(question, correctText);
+    : question.type === "correct" ? `${correctTokens(question.prompt)[correctWrongIndex(question)] || question.wrong} → ${acceptedAnswers(question.answer)[0] || ""}`
+    : acceptedAnswers(question.answer)[0] || question.answer;
+  const correctSentence = question.type === "correct" ? buildCorrectedSentence(question) : buildCorrectSentence(question, correctText);
   const userText = question.type === "choice" ? selectedIndexes.map(index => question.answers[index]).join(", ")
     : question.type === "order" ? selectedAnswer.map(id => question.wordTiles.find(tile => tile.id === id)?.word || "").join(" ")
     : question.type === "match" ? question.pairs.map((pair, i) => `${question.matchTiles.find(tile => tile.id === selectedAnswer[i])?.left || "?"} → ${pair.right}`).join(", ")
+    : question.type === "correct" ? `${selectedAnswer.wordIndex !== null ? correctTokens(question.prompt)[selectedAnswer.wordIndex] : "—"} → ${selectedAnswer.fix || ""}`
     : selectedAnswer;
-  const result = { prompt: question.prompt, correct, answer: userText, correctAnswer: correctText, selectedIndexes: question.type === "order" ? [...selectedAnswer] : selectedIndexes, matchAssignment: question.type === "match" ? { ...selectedAnswer } : undefined, correctSentence };
+  const result = { prompt: question.prompt, correct, answer: userText, correctAnswer: correctText, selectedIndexes: question.type === "order" ? [...selectedAnswer] : selectedIndexes, matchAssignment: question.type === "match" ? { ...selectedAnswer } : undefined, correctAssignment: question.type === "correct" ? { ...selectedAnswer } : undefined, correctSentence };
   results[questionIndex] = result;
   hasChecked = true;
   showCheckedQuestion(question, result);
@@ -1080,6 +1122,13 @@ function showCheckedQuestion(question, result) {
     });
   } else if (question.type === "flashcard") {
     $("#answerArea").innerHTML = `<div class="flashcard-back-revealed ${result.correct ? "correct" : "wrong"}"><p class="flashcard-answer-text">${escapeHtml(question.answer)}</p></div>`;
+  } else if (question.type === "correct") {
+    selectedAnswer = { ...(result.correctAssignment || { wordIndex: null, fix: "" }) };
+    renderCorrectAnswer(question, true);
+    const wrongIndex = correctWrongIndex(question);
+    $$(".correct-word").forEach((button, i) => { if (i === wrongIndex) button.classList.add("correct"); else if (i === selectedAnswer.wordIndex) button.classList.add("wrong"); });
+    const fixInput = $(".correct-fix-input");
+    if (fixInput) fixInput.classList.add(result.correct ? "correct" : "wrong");
   } else { const input = $("#fillInput"); input.value = result.answer || ""; input.disabled = true; input.classList.add(result.correct ? "correct" : "wrong"); }
   const feedback = $("#feedback"); feedback.classList.add(result.correct ? "good" : "bad");
   feedback.innerHTML = result.correct
@@ -1102,6 +1151,7 @@ function restoreCheckedQuestion(question, result) {
   hasChecked = true;
   selectedAnswer = question.type === "choice" || question.type === "order" ? [...(result.selectedIndexes || [])]
     : question.type === "match" ? { ...(result.matchAssignment || {}) }
+    : question.type === "correct" ? { ...(result.correctAssignment || { wordIndex: null, fix: "" }) }
     : result.answer;
   showCheckedQuestion(question, result);
 }
@@ -1511,6 +1561,10 @@ function editQuiz(id) {
       $(".fill-correct", card).value = question.answer;
       updateQuestionImagePreview(card);
     }
+    else if (question.type === "correct") {
+      $(".correct-wrong", card).value = question.wrong || "";
+      $(".fill-correct", card).value = question.answer;
+    }
     else $(".fill-correct", card).value = question.answer;
   });
   updateCreatorMode();
@@ -1520,7 +1574,7 @@ function editQuiz(id) {
 function addQuestion(type = "choice") {
   questionCounter++;
   const card = document.createElement("article"); card.className = "question-card"; card.dataset.type = type; card.dataset.uid = questionCounter; card.imageData = "";
-  card.innerHTML = `<div class="question-card-header"><span class="question-number">Pytanie <b></b></span><button type="button" class="remove-question" aria-label="Usuń pytanie">Usuń</button></div><div class="type-switch"><button type="button" class="type-option ${type === "choice" ? "active" : ""}" data-type="choice">Test wyboru</button><button type="button" class="type-option ${type === "fill" ? "active" : ""}" data-type="fill">Uzupełnij zdanie</button><button type="button" class="type-option ${type === "order" ? "active" : ""}" data-type="order">Uporządkuj</button><button type="button" class="type-option ${type === "match" ? "active" : ""}" data-type="match">Dopasuj</button><button type="button" class="type-option ${type === "flashcard" ? "active" : ""}" data-type="flashcard">Fiszka</button></div><input class="text-input question-instruction" placeholder="Polecenie nad pytaniem (opcjonalnie), np. Complete the sentence" maxlength="80" /><input class="text-input question-prompt" required placeholder="Wpisz treść pytania…" maxlength="180" /><div class="dynamic-editor"></div>`;
+  card.innerHTML = `<div class="question-card-header"><span class="question-number">Pytanie <b></b></span><button type="button" class="remove-question" aria-label="Usuń pytanie">Usuń</button></div><div class="type-switch"><button type="button" class="type-option ${type === "choice" ? "active" : ""}" data-type="choice">Test wyboru</button><button type="button" class="type-option ${type === "fill" ? "active" : ""}" data-type="fill">Uzupełnij zdanie</button><button type="button" class="type-option ${type === "order" ? "active" : ""}" data-type="order">Uporządkuj</button><button type="button" class="type-option ${type === "match" ? "active" : ""}" data-type="match">Dopasuj</button><button type="button" class="type-option ${type === "flashcard" ? "active" : ""}" data-type="flashcard">Fiszka</button><button type="button" class="type-option ${type === "correct" ? "active" : ""}" data-type="correct">Popraw błąd</button></div><input class="text-input question-instruction" placeholder="Polecenie nad pytaniem (opcjonalnie), np. Complete the sentence" maxlength="80" /><input class="text-input question-prompt" required placeholder="Wpisz treść pytania…" maxlength="180" /><div class="dynamic-editor"></div>`;
   $("#questionList").append(card); renderEditor(card); renumberQuestions();
   $(".remove-question", card).addEventListener("click", () => { if ($$(".question-card").length <= 1) return showToast("Test musi mieć co najmniej jedno pytanie"); card.remove(); renumberQuestions(); });
   $$(".type-option", card).forEach(button => button.addEventListener("click", () => switchQuestionType(card, button.dataset.type)));
@@ -1538,16 +1592,17 @@ function switchQuestionType(card, nextType) {
     card.fillCache = card.choiceCache.answers[card.choiceCache.correctAnswers[0]] || "";
   } else if (currentType === "order") card.orderCache = $(".order-correct", card)?.value || "";
   else if (currentType === "match") card.matchCache = $$(".match-pair-row", card).map(row => ({ left: $(".match-pair-left", row).value, right: $(".match-pair-right", row).value }));
-  else card.fillCache = $(".fill-correct", card)?.value || "";
+  else { card.fillCache = $(".fill-correct", card)?.value || ""; if (currentType === "correct") card.wrongCache = $(".correct-wrong", card)?.value || ""; }
 
   const matchFirstPairRight = card.matchCache?.find(pair => pair.right)?.right || "";
   const matchFirstPairLeft = card.matchCache?.find(pair => pair.left)?.left || "";
 
   card.dataset.type = nextType;
   $$(".type-option", card).forEach(button => button.classList.toggle("active", button.dataset.type === nextType));
-  if (nextType === "fill" || nextType === "flashcard") {
+  if (nextType === "fill" || nextType === "flashcard" || nextType === "correct") {
     renderEditor(card);
     $(".fill-correct", card).value = card.fillCache || card.orderCache || matchFirstPairRight || "";
+    if (nextType === "correct" && $(".correct-wrong", card)) $(".correct-wrong", card).value = card.wrongCache || "";
   } else if (nextType === "order") {
     renderEditor(card);
     $(".order-correct", card).value = card.orderCache || card.fillCache || card.choiceCache?.answers?.[card.choiceCache.correctAnswers[0]] || matchFirstPairLeft || "";
@@ -1565,7 +1620,7 @@ function setAllQuestionTypes(type) {
   const cards = $$(".question-card");
   const convertedFromFill = type === "choice" && cards.some(card => card.dataset.type === "fill" && !card.choiceCache);
   cards.forEach(card => switchQuestionType(card, type));
-  const typeLabel = type === "choice" ? "test wyboru" : type === "fill" ? "uzupełnij zdanie" : type === "match" ? "dopasuj" : type === "flashcard" ? "fiszka" : "uporządkuj zdanie";
+  const typeLabel = type === "choice" ? "test wyboru" : type === "fill" ? "uzupełnij zdanie" : type === "match" ? "dopasuj" : type === "flashcard" ? "fiszka" : type === "correct" ? "popraw błąd" : "uporządkuj zdanie";
   showToast(convertedFromFill ? "Zmieniono typ. Dopisz błędne odpowiedzi w nowych testach wyboru" : `Wszystkie pytania: ${typeLabel}`);
 }
 
@@ -1635,6 +1690,7 @@ function renderEditor(card, answerValues = null, correctIndexes = [0]) {
     bindMatchPairsEditor(card);
   }
   else if (card.dataset.type === "flashcard") editor.innerHTML = '<p class="fill-editor-note">Wpisz tłumaczenie lub definicję (tył fiszki). Treść pytania powyżej to awers.</p><input class="text-input fill-correct" required placeholder="Np. ciekawy" maxlength="200" />';
+  else if (card.dataset.type === "correct") editor.innerHTML = '<p class="fill-editor-note">Treść pytania powyżej to zdanie z jednym błędnym słowem. Podaj to błędne słowo (dokładnie jak w zdaniu) oraz jego poprawną formę. Kilka akceptowanych form oddziel znakiem |.</p><input class="text-input correct-wrong" required placeholder="Błędne słowo, np. go" maxlength="60" /><input class="text-input fill-correct" required placeholder="Poprawna forma, np. goes" maxlength="60" />';
   else {
     editor.innerHTML = `<p class="fill-editor-note">Podaj odpowiedź akceptowaną jako prawidłowa (wielkość liter nie ma znaczenia).</p><input class="text-input fill-correct" required placeholder="Prawidłowa odpowiedź…" maxlength="100" />${questionImagePickerHtml(card)}`;
     bindQuestionImagePicker(card);
@@ -1812,14 +1868,15 @@ function importCsvQuestions() {
   const rows = raw.split(/\r?\n/).filter(line => line.trim());
   const parsedRows = rows.map(parseCsvLine).map(fields => {
     if (!fields || !fields[0] || !fields[1]) return null;
-    const typeToken = fields[fields.length - 1].toLocaleLowerCase("pl").normalize("NFD").replace(/[̀-ͯ]/g, "").trim();
+    const typeToken = fields[fields.length - 1].toLocaleLowerCase("pl").normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/ł/g, "l").trim();
     const fillTokens = ["fill", "uzupelnij", "uzupelnianie", "uzupelnij zdanie"];
     const choiceTokens = ["choice", "wybor", "test wyboru", "multiple choice"];
     const orderTokens = ["order", "uporzadkuj", "uporzadkuj zdanie", "kolejnosc"];
     const flashcardTokens = ["flashcard", "fiszka", "fiszki"];
     const matchTokens = ["match", "dopasuj", "dopasowanie"];
-    const hasType = fillTokens.includes(typeToken) || choiceTokens.includes(typeToken) || orderTokens.includes(typeToken) || flashcardTokens.includes(typeToken) || matchTokens.includes(typeToken);
-    const type = matchTokens.includes(typeToken) ? "match" : flashcardTokens.includes(typeToken) ? "flashcard" : orderTokens.includes(typeToken) ? "order" : fillTokens.includes(typeToken) ? "fill" : "choice";
+    const correctTypeTokens = ["correct", "popraw", "popraw blad", "poprawianie", "znajdz blad"];
+    const hasType = fillTokens.includes(typeToken) || choiceTokens.includes(typeToken) || orderTokens.includes(typeToken) || flashcardTokens.includes(typeToken) || matchTokens.includes(typeToken) || correctTypeTokens.includes(typeToken);
+    const type = matchTokens.includes(typeToken) ? "match" : flashcardTokens.includes(typeToken) ? "flashcard" : orderTokens.includes(typeToken) ? "order" : correctTypeTokens.includes(typeToken) ? "correct" : fillTokens.includes(typeToken) ? "fill" : "choice";
     const content = hasType ? fields.slice(0, -1) : fields;
     const [rawPrompt, ...rest] = content;
     const instructionMatch = /^\[([^\]]+)\]\s*(.+)$/.exec(rawPrompt || "");
@@ -1832,6 +1889,13 @@ function importCsvQuestions() {
       }).filter(Boolean);
       if (!prompt || pairs.length < 2) return null;
       return { type, prompt, pairs, instruction };
+    }
+    if (type === "correct") {
+      const [wrong, fix] = rest;
+      if (!prompt || !wrong || !fix) return null;
+      const candidate = { type, prompt, wrong: wrong.trim(), answer: fix.trim(), instruction };
+      if (correctWrongIndex(candidate) === -1) return null;
+      return candidate;
     }
     const [correct, ...incorrect] = rest;
     const correctAnswers = type === "choice" ? correct.split("|").map(answer => answer.trim()).filter(Boolean) : [correct];
@@ -1856,6 +1920,7 @@ function importCsvQuestions() {
     }
     else if (row.type === "order") $(".order-correct", card).value = row.correct;
     else if (row.type === "match") renderEditor(card, row.pairs);
+    else if (row.type === "correct") { $(".correct-wrong", card).value = row.wrong; $(".fill-correct", card).value = row.answer; }
     else $(".fill-correct", card).value = row.correct;
   });
   renumberQuestions();
@@ -1869,6 +1934,7 @@ function saveCreatedQuiz(event) {
     const prompt = $(".question-prompt", card).value.trim();
     const instruction = $(".question-instruction", card).value.trim();
     if (card.dataset.type === "flashcard") { const question = { type: "flashcard", prompt, answer: $(".fill-correct", card).value.trim() }; if (instruction) question.instruction = instruction; return question; }
+    if (card.dataset.type === "correct") { const question = { type: "correct", prompt, wrong: $(".correct-wrong", card).value.trim(), answer: $(".fill-correct", card).value.trim() }; if (instruction) question.instruction = instruction; return question; }
     if (card.dataset.type === "fill") {
       const question = { type: "fill", prompt, answer: $(".fill-correct", card).value.trim() };
       if (card.imageData) question.image = card.imageData;
@@ -1899,6 +1965,8 @@ function saveCreatedQuiz(event) {
   });
   if (questions.some(question => question.type === "choice" && !question.correctAnswers.length)) return showToast("Każde pytanie wyboru musi mieć co najmniej jedną poprawną odpowiedź");
   if (questions.some(question => question.type === "match" && question.pairs.length < 2)) return showToast("Każde pytanie typu Dopasuj musi mieć co najmniej dwie pełne pary");
+  if (questions.some(question => question.type === "correct" && (!question.wrong || !question.answer))) return showToast("Każde pytanie „Popraw błąd” musi mieć błędne słowo i poprawną formę");
+  if (questions.some(question => question.type === "correct" && correctWrongIndex(question) === -1)) return showToast("Błędne słowo w pytaniu „Popraw błąd” musi występować w treści zdania");
   const wasEditing = Boolean(editingQuizId);
   const quiz = { id: editingQuizId || `quiz-${Date.now()}`, title: $("#quizTitle").value.trim(), level: $("#quizLevel").value, category: $("#quizCategory").value.trim() || "Angielski", image: creatorImageData, shuffleQuestions: $("#shuffleQuestions").checked, shuffleAnswers: $("#shuffleAnswers").checked, questions };
   if (wasEditing) quizzes = quizzes.map(item => item.id === editingQuizId ? quiz : item);

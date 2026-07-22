@@ -20,6 +20,7 @@ Następnie przejdź do `http://localhost:8000`.
 - pytania wielokrotnego wyboru z dowolną liczbą poprawnych odpowiedzi, także w imporcie CSV przez separator `|`,
 - typ pytania „Uporządkuj zdanie” — układanie pomieszanych kafelków słów klikaniem lub przeciąganiem,
 - typ **Fiszka** — odwracana karta z samooceną „Wiedziałem / Nie wiedziałem", dostępna w kreatorze, w imporcie CSV (`fiszka`) i w zmianie zbiorczej,
+- typ **Popraw błąd** — zdanie z jednym błędnym słowem; uczący się klika błędne słowo i wpisuje jego poprawną formę (dopuszczalnych form może być kilka, oddzielonych `|`), dostępny w kreatorze, w imporcie CSV (`correct`) i w zmianie zbiorczej,
 - opcjonalne polecenie wyświetlane nad treścią pytania (np. „Complete the sentence”), ustawiane w kreatorze lub przez import CSV.
 
 ### Kreator i edycja testów
@@ -34,7 +35,7 @@ Następnie przejdź do `http://localhost:8000`.
 
 ### Import z CSV
 
-- import wielu pytań z wklejonej struktury CSV, z typem pytania (`choice`, `fill`, `order`, `fiszka`) w ostatnim polu importowanego wiersza (szczegóły w sekcji [Import pytań z CSV](#import-pytań-z-csv)).
+- import wielu pytań z wklejonej struktury CSV, z typem pytania (`choice`, `fill`, `order`, `fiszka`, `match`, `correct`) w ostatnim polu importowanego wiersza (szczegóły w sekcji [Import pytań z CSV](#import-pytań-z-csv)).
 
 ### Kategorie i organizacja
 
@@ -143,6 +144,27 @@ Przykład:
 Ułóż zdanie., I love you., order
 ```
 
+Pierwsze pole to polecenie widoczne nad pytaniem, drugie to całe poprawne zdanie — aplikacja rozbija je na słowa i miesza kafelki.
+
+### Dopasuj
+
+Pytanie typu „Dopasuj" łączy kafelki z lewej kolumny z polami w prawej. Każdą parę zapisuje się jako `lewa=prawa`, a par musi być co najmniej dwie.
+
+Układ pól:
+
+```text
+polecenie, lewa 1=prawa 1, lewa 2=prawa 2, lewa 3=prawa 3, match
+```
+
+Przykład:
+
+```csv
+Dopasuj słowa., ruler=linijka, pencil case=piórnik, scissors=nożyczki, match
+Dopasuj kraj do stolicy., Poland=Warsaw, France=Paris, match
+```
+
+Podczas testu uczący się przeciąga kolorowe kafelki (lewa kolumna) na właściwe pola (prawa kolumna) lub klika kafelek, a potem pole. Importer przyjmuje jako typ: `match`, `dopasuj` lub `dopasowanie`.
+
 ### Fiszki
 
 Fiszka to odwracana karta: awers to pytanie lub słowo, rewers to tłumaczenie lub definicja.
@@ -165,16 +187,37 @@ Podczas testu kliknięcie karty lub przycisku **Pokaż odpowiedź** odwraca fisz
 
 Importer przyjmuje jako typ: `fiszka`, `fiszki` lub `flashcard`.
 
+### Popraw błąd
+
+Pytanie typu „Popraw błąd" to zdanie zawierające jedno błędne słowo. Podczas testu uczący się klika błędne słowo (podświetla się), a następnie wpisuje jego poprawną formę.
+
+Układ pól:
+
+```text
+zdanie z błędem, błędne słowo, poprawna forma, correct
+```
+
+Przykład:
+
+```csv
+She go to school every day., go, goes, correct
+He don't like coffee., don't, doesn't, correct
+```
+
+Błędne słowo (drugie pole) musi występować w treści zdania — w przeciwnym razie wiersz jest pomijany przy imporcie. Poprawną formę można podać w kilku akceptowanych wariantach oddzielonych `|`, np. `goes|does go`. Importer przyjmuje jako typ: `correct`, `popraw` lub `popraw blad`.
+
 ### Mieszanie różnych typów pytań
 
-W jednym imporcie można łączyć pytania jednokrotnego wyboru, wielokrotnego wyboru, uzupełnianie zdań, układanie i fiszki:
+W jednym imporcie można łączyć wszystkie typy pytań — jednokrotny i wielokrotny wybór, uzupełnianie zdań, układanie, dopasowywanie, fiszki i poprawianie błędu:
 
 ```csv
 What ___ your name?, is, are, am, can, choice
 Kolory flagi Polski?, biały|czerwony, niebieski, zielony, choice
 I ___ coffee every morning., drink, fill
+Ułóż zdanie., I love you., order
+Dopasuj słowa., ruler=linijka, pencil case=piórnik, match
 curious, ciekawy, fiszka
-brave, odważny, fiszka
+She go to school every day., go, goes, correct
 ```
 
 Typ każdego pytania określa ostatnie pole:
@@ -182,9 +225,50 @@ Typ każdego pytania określa ostatnie pole:
 - `choice` — test wyboru,
 - `fill` — uzupełnianie zdania,
 - `order` — układanie zdania z kafelków,
-- `fiszka` — odwracana fiszka.
+- `match` — dopasowywanie par,
+- `fiszka` — odwracana fiszka,
+- `correct` — poprawianie błędnego słowa w zdaniu.
 
-Importer rozpoznaje również polskie oznaczenia, m.in. `wybor`, `test wyboru`, `uzupelnij`, `uzupelnij zdanie`, `fiszki` i `flashcard`. Najbardziej jednoznaczne są jednak oznaczenia `choice`, `fill`, `order` i `fiszka`.
+Oznaczenie typu jest odporne na wielkość liter i polskie znaki diakrytyczne (`uzupełnij` = `uzupelnij`). Każdy typ ma kilka dozwolonych form:
+
+| Typ | Dozwolone oznaczenia (ostatnie pole) |
+| --- | --- |
+| Test wyboru | `choice`, `wybor`, `test wyboru`, `multiple choice` |
+| Uzupełnianie zdania | `fill`, `uzupelnij`, `uzupelnianie`, `uzupelnij zdanie` |
+| Uporządkuj zdanie | `order`, `uporzadkuj`, `uporzadkuj zdanie`, `kolejnosc` |
+| Dopasuj | `match`, `dopasuj`, `dopasowanie` |
+| Fiszka | `flashcard`, `fiszka`, `fiszki` |
+| Popraw błąd | `correct`, `popraw`, `popraw blad`, `poprawianie`, `znajdz blad` |
+
+Najbardziej jednoznaczne są angielskie oznaczenia `choice`, `fill`, `order`, `match`, `fiszka` i `correct`.
+
+Przykład wykorzystujący wszystkie dozwolone formy (po jednym wierszu na każdą):
+
+```csv
+What ___ your name?, is, are, am, can, choice
+___ she your teacher?, Is, Are, Am, Do, wybór
+Kolory flagi Polski?, biały|czerwony, niebieski, zielony, test wyboru
+Which animals can be pets?, dog|cat, table, quickly, multiple choice
+I ___ coffee every morning., drink, fill
+She ___ dinner yesterday., cooked, uzupełnij
+We ___ from Poland., are, uzupełnianie
+Cats ___ fly., can't, uzupełnij zdanie
+Ułóż zdanie., I love you., order
+Ułóż zdanie., She is happy., uporządkuj
+Ułóż zdanie., They play football., uporządkuj zdanie
+Ułóż zdanie., We go home., kolejność
+Dopasuj słowa., ruler=linijka, pencil case=piórnik, match
+Dopasuj kraj do stolicy., Poland=Warsaw, France=Paris, dopasuj
+Dopasuj przeciwieństwa., big=small, hot=cold, dopasowanie
+curious, ciekawy, flashcard
+brave, odważny, fiszka
+patient, cierpliwy, fiszki
+She go to school every day., go, goes, correct
+He don't like coffee., don't, doesn't, popraw
+My brother watch TV., watch, watches, popraw błąd
+They plays football., plays, play, poprawianie
+Anna have three cats., have, has, znajdź błąd
+```
 
 ### Polecenie nad pytaniem (opcjonalnie)
 
@@ -199,9 +283,10 @@ Przykład:
 ```csv
 [Complete the sentence] Anna ___ karate usually in the morning., plays, do, does, play, choice
 [Choose the correct answer] What ___ your name?, is, are, am, can, choice
+[Znajdź i popraw błąd] She go to school every day., go, goes, correct
 ```
 
-Jeśli pole nie zaczyna się od nawiasu kwadratowego, aplikacja użyje domyślnej etykiety typu pytania.
+Polecenie działa dla każdego typu pytania — wystarczy dodać `[...]` na początku pierwszego pola. Jeśli pole nie zaczyna się od nawiasu kwadratowego, aplikacja użyje domyślnej etykiety typu pytania.
 
 ### Przecinki wewnątrz pytania lub odpowiedzi
 
