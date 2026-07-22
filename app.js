@@ -833,7 +833,7 @@ function renderQuestion() {
   } else playImage.removeAttribute("src");
   $(".quiz-stage").classList.toggle("picture-mode", Boolean(questionImage));
   $("#progressFill").style.width = `${((questionIndex + 1) / activeQuiz.questions.length) * 100}%`;
-  $("#progressText").textContent = `${questionIndex + 1} / ${activeQuiz.questions.length + 1}`;
+  $("#progressText").textContent = `${questionIndex + 1} / ${activeQuiz.questions.length}`;
   $("#questionMeta").textContent = question.instruction || (question.type === "choice" ? "Wybierz odpowiedź" : question.type === "order" ? "Uporządkuj zdanie" : question.type === "match" ? "Dopasuj" : question.type === "flashcard" ? "Fiszka" : "Uzupełnij zdanie");
   setQuestionText(question.prompt);
   const requiredChoices = question.type === "choice" ? getCorrectIndexes(question).length : 0;
