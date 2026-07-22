@@ -14,40 +14,60 @@ Następnie przejdź do `http://localhost:8000`.
 
 ## Funkcje
 
+### Typy pytań
+
 - testy jednokrotnego wyboru i uzupełnianie zdań,
-- dźwiękowa informacja o poprawnej i błędnej odpowiedzi,
-- szczegółowe podsumowanie każdego pytania,
+- pytania wielokrotnego wyboru z dowolną liczbą poprawnych odpowiedzi, także w imporcie CSV przez separator `|`,
+- typ pytania „Uporządkuj zdanie” — układanie pomieszanych kafelków słów klikaniem lub przeciąganiem,
+- typ **Fiszka** — odwracana karta z samooceną „Wiedziałem / Nie wiedziałem", dostępna w kreatorze, w imporcie CSV (`fiszka`) i w zmianie zbiorczej,
+- opcjonalne polecenie wyświetlane nad treścią pytania (np. „Complete the sentence”), ustawiane w kreatorze lub przez import CSV.
+
+### Kreator i edycja testów
+
 - kreator własnych testów,
+- edycja własnych testów po ich utworzeniu, w tym edycja i usuwanie testów wbudowanych,
+- zbiorcza zmiana typu wszystkich pytań w kreatorze,
+- osobne ustawienia losowania kolejności pytań i odpowiedzi,
+- obrazek wyświetlany pod przyciskiem odpowiedzi, dodawany z pliku lub adresu URL; większe obrazki wyświetlane w pełnych proporcjach bez przycinania,
+- gotowy 24-pytaniowy test `Grammar Power Pack` z konstrukcjami `to be`, `have/has got` i `can`,
+- nowe warianty pytań i przetasowane odpowiedzi przy każdym rozpoczęciu testu.
+
+### Import z CSV
+
+- import wielu pytań z wklejonej struktury CSV, z typem pytania (`choice`, `fill`, `order`, `fiszka`) w ostatnim polu importowanego wiersza (szczegóły w sekcji [Import pytań z CSV](#import-pytań-z-csv)).
+
+### Kategorie i organizacja
+
+- tematyczne zakładki-foldery tworzone automatycznie na podstawie kategorii testów,
+- rozwijana lista istniejących kategorii w kreatorze z możliwością wpisania nowej,
+- przeciąganie testów pomiędzy folderami kategorii,
+- tworzenie pustych kategorii bezpośrednio z biblioteki testów,
+- usuwanie całej kategorii razem ze wszystkimi przypisanymi testami.
+
+### Rozwiązywanie testu
+
+- szczegółowe podsumowanie każdego pytania,
+- podczas testu można wracać do poprzednich pytań bez utraty zaznaczonych odpowiedzi i wyniku,
+- animacja celebracyjna po poprawnej odpowiedzi oraz animacja serduszek po ukończeniu testu z wynikiem 100%.
+
+### Dźwięk i komunikaty głosowe
+
+- dźwiękowa informacja o poprawnej i błędnej odpowiedzi,
+- głosowy komunikat „Brawo Lila” po ukończeniu testu z wynikiem 100%,
+- konfigurowalne komunikaty głosowe dla poprawnej i błędnej odpowiedzi oraz wyniku 100% i poniżej 100%,
+- możliwość wyłączenia dowolnego komunikatu dźwiękowego przez pozostawienie pustego pola,
+- dynamiczne odczytywanie całego poprawnego zdania po każdej odpowiedzi — prawidłowej i błędnej — niezależnie od dodatkowego komunikatu „Correct answer”, z możliwością ponownego odtworzenia,
+- po odczytaniu poprawnego zdania aplikacja automatycznie przechodzi dalej (domyślnie po 5 sekundach); czas można ustawić od 0 do 60 sekund w ustawieniach komunikatów, a wartość 0 wyłącza tę funkcję; podczas oczekiwania na ekranie widać licznik pozostałych sekund.
+
+### Słówko dnia
+
+- losowane słówko dnia z tłumaczeniem przy każdym odświeżeniu strony,
+- edytowalna lista słówek dnia z masowym importem CSV: słowo i tłumaczenie.
+
+### Ogólne
+
 - lokalny zapis testów w przeglądarce,
 - responsywny interfejs na komputer i telefon.
-- animacja celebracyjna po poprawnej odpowiedzi,
-- gotowy 24-pytaniowy test `Grammar Power Pack` z konstrukcjami `to be`, `have/has got` i `can`.
-- nowe warianty pytań i przetasowane odpowiedzi przy każdym rozpoczęciu testu.
-- import wielu pytań z wklejonej struktury CSV.
-- typ `choice` lub `fill` w ostatnim polu importowanego wiersza,
-- zbiorcza zmiana typu wszystkich pytań w kreatorze.
-- edycja własnych testów po ich utworzeniu.
-- osobne ustawienia losowania kolejności pytań i odpowiedzi.
-- obrazek wyświetlany pod przyciskiem odpowiedzi, dodawany z pliku lub adresu URL.
-- tematyczne zakładki-foldery tworzone automatycznie na podstawie kategorii testów.
-- rozwijana lista istniejących kategorii w kreatorze z możliwością wpisania nowej.
-- przeciąganie testów pomiędzy folderami kategorii.
-- edycja i usuwanie każdego testu, również testów wbudowanych.
-- tworzenie pustych kategorii bezpośrednio z biblioteki testów.
-- usuwanie całej kategorii razem ze wszystkimi przypisanymi testami.
-- głosowy komunikat „Brawo Lila” po ukończeniu testu z wynikiem 100%.
-- dynamiczne odczytywanie całego poprawnego zdania po każdej poprawnej odpowiedzi.
-- konfigurowalne komunikaty głosowe dla poprawnej i błędnej odpowiedzi oraz wyniku 100% i poniżej 100%.
-- animacja serduszek po ukończeniu testu z wynikiem 100%.
-- możliwość wyłączenia dowolnego komunikatu dźwiękowego przez pozostawienie pustego pola.
-- pełne poprawne zdanie odczytywane niezależnie od dodatkowego komunikatu „Correct answer”.
-- pełne poprawne zdanie odczytywane po każdej odpowiedzi — prawidłowej i błędnej — z możliwością ponownego odtworzenia.
-- większe obrazki w testach wyświetlane w pełnych proporcjach bez przycinania.
-- losowane słówko dnia z tłumaczeniem przy każdym odświeżeniu strony.
-- edytowalna lista słówek dnia z masowym importem CSV: słowo i tłumaczenie.
-- pytania wielokrotnego wyboru z dowolną liczbą poprawnych odpowiedzi, także w imporcie CSV przez separator `|`.
-- typ **Fiszka** — odwracana karta z samooceną „Wiedziałem / Nie wiedziałem", dostępna w kreatorze, w imporcie CSV (`fiszka`) i w zmianie zbiorczej.
-- opcjonalne polecenie wyświetlane nad treścią pytania (np. „Complete the sentence”), ustawiane w kreatorze lub przez import CSV.
 
 ## Import pytań z CSV
 
@@ -108,6 +128,20 @@ Cats ___ fly., can't, fill
 ```
 
 Wielkość liter w odpowiedzi użytkownika nie ma znaczenia.
+
+### Uporządkuj zdanie
+
+Układ pól:
+
+```text
+polecenie, zdanie do ułożenia, order
+```
+
+Przykład:
+
+```csv
+Ułóż zdanie., I love you., order
+```
 
 ### Fiszki
 
@@ -200,7 +234,3 @@ brave, odważny
 ```
 
 Każdy wiersz zawiera angielskie słowo i polskie tłumaczenie. Edytor listy otwiera się ikoną ⚙ na karcie słówka dnia.
-- podczas testu można wracać do poprzednich pytań bez utraty zaznaczonych odpowiedzi i wyniku,
-- po odczytaniu poprawnego zdania aplikacja automatycznie przechodzi dalej (domyślnie po 5 sekundach); czas można ustawić od 0 do 60 sekund w ustawieniach komunikatów, a wartość 0 wyłącza tę funkcję,
-- podczas oczekiwania na kolejne pytanie na ekranie widać licznik pozostałych sekund,
-- typ pytania „Uporządkuj zdanie” pozwala układać pomieszane kafelki słów klikaniem lub przeciąganiem; w CSV użyj ostatniego pola `order`, np. `Ułóż zdanie., I love you., order`,- typ pytania **Fiszka** wyświetla awers (pytanie), a po kliknięciu karty lub przycisku „Pokaż odpowiedź" ujawnia rewers; użytkownik sam ocenia, czy znał odpowiedź, przyciskami „Wiedziałem" / „Nie wiedziałem"; w CSV format to `awers, rewers, fiszka`, np. `curious, ciekawy, fiszka`,
