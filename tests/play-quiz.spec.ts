@@ -16,6 +16,9 @@ test.describe('Rozwiązywanie testu', () => {
 
     // 2. Odpowiadaj na kolejne pytania (typ i kolejność mogą być losowane), aż pojawi się ekran wyników
     for (let question = 0; question < 6; question++) {
+      // Licznik postępu ("X / Y") musi pokazywać rzeczywistą łączną liczbę pytań (6), nie zawyżoną wartość
+      await expect(page.locator('#progressText')).toHaveText(`${question + 1} / 6`);
+
       const choiceOption = page.locator('.answer-option').first();
       const fillInput = page.locator('#fillInput');
 
