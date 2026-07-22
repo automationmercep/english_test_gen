@@ -9,6 +9,8 @@ export default defineConfig({
     headless: false,
     baseURL: 'http://127.0.0.1:8000',
     trace: 'on-first-retry',
+    screenshot: 'only-on-failure',
+    video: 'on',
     launchOptions: {
       slowMo: 500,
     },

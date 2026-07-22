@@ -3,8 +3,12 @@ name: Playwright Tests
 on:
   push:
     branches: [main]
+    paths-ignore: [test-reports/**]
   pull_request:
     branches: [main]
+
+permissions:
+  contents: write
 
 jobs:
   test:
@@ -24,6 +28,8 @@ jobs:
 
       - name: Run Playwright tests
         run: xvfb-run -a npx playwright test
+        continue-on-error: true
+        id: run_tests
 
       - name: Upload Playwright report
         if: always()
@@ -32,3 +38,24 @@ jobs:
           name: playwright-report
           path: playwright-report/
           retention-days: 14
+
+      - name: Publish report to GitHub Pages (test-reports/latest)
+        if: always() && github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: |
+          rm -rf test-reports/latest
+          mkdir -p test-reports/latest
+          cp -r playwright-report/* test-reports/latest/
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add test-reports/latest
+          if git diff --cached --quiet; then
+            echo "No report changes to commit"
+          else
+            git commit -m "chore: update Playwright test report [skip ci]"
+            git pull --rebase origin main
+            git push
+          fi
+
+      - name: Fail job if tests failed
+        if: steps.run_tests.outcome == 'failure'
+        run: exit 1
