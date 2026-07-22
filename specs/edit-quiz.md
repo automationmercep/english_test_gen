@@ -10,6 +10,6 @@
 
 **Expected:**
 - Wyświetla się widok "Moje testy" (strona główna)
-- Pojawia się komunikat (toast) "Zmiany w teście zostały zapisane"
+- Pojawia się komunikat (toast) "Zapisano zmiany w teście"
 - Na liście testów widoczna jest karta z nowym tytułem "Everyday English (poprawiony)"
 - Karta ze starym tytułem "Everyday English" nie jest już widoczna

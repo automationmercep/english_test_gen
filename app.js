@@ -1914,7 +1914,7 @@ function saveCreatedQuiz(event) {
   resetCreator();
   updateCreatorMode();
   showView("home");
-  showToast(wasEditing ? "Zmiany w teście zostały zapisane" : "Test zapisany — możesz zaczynać!");
+  showToast(wasEditing ? "Zapisano zmiany w teście" : "Test zapisany — możesz zaczynać!");
 }
 function showToast(message) { const toast = $("#toast"); toast.textContent = message; toast.classList.add("show"); clearTimeout(showToast.timer); showToast.timer = setTimeout(() => toast.classList.remove("show"), 2600); }
 

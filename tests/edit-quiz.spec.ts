@@ -25,8 +25,8 @@ test.describe('Edycja istniejącego testu', () => {
 
     // expect: the app navigates back to the home view (#homeView has class "active")
     await expect(page.locator('#homeView')).toHaveClass(/active/);
-    // expect: a toast shows the text "Zmiany w teście zostały zapisane"
-    await expect(page.getByText('Zmiany w teście zostały zapisane')).toBeVisible();
+    // expect: a toast shows the text "Zapisano zmiany w teście"
+    await expect(page.getByText('Zapisano zmiany w teście')).toBeVisible();
     // expect: a quiz card with the new title "Everyday English (poprawiony)" is visible in the grid
     await expect(page.getByRole('button', { name: 'Rozpocznij test Everyday English (poprawiony)' })).toBeVisible();
     // expect: there is no longer a quiz card with the exact old title "Everyday English"
