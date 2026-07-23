@@ -229,7 +229,7 @@ function loadQuestionTimeLimit() {
 function saveQuestionTimeLimit() { localStorage.setItem(QUESTION_TIME_STORAGE_KEY, String(questionTimeLimit)); }
 function loadReadAnswer() { return localStorage.getItem(READ_ANSWER_STORAGE_KEY) !== "false"; }
 function saveReadAnswer() { localStorage.setItem(READ_ANSWER_STORAGE_KEY, String(readAnswer)); }
-function escapeHtml(value = "") { return value.replace(/[&<>'"]/g, char => ({"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;",'"':"&quot;"}[char])); }
+// escapeHtml lives in lib/pure-logic.js (loaded first).
 
 function renderRandomDailyWord() {
   const lastWord = sessionStorage.getItem("bright-english-last-word");
@@ -242,17 +242,7 @@ function renderRandomDailyWord() {
   sessionStorage.setItem("bright-english-last-word", selected.word);
 }
 
-function formatDailyWordCsvField(value) {
-  const text = String(value || "");
-  return /[,"\n]/.test(text) ? '"' + text.replace(/"/g, '""') + '"' : text;
-}
-
-function dailyWordsToCsv(words) {
-  return words.map(item => [
-    formatDailyWordCsvField(item.word),
-    formatDailyWordCsvField(item.translation)
-  ].join(", ")).join("\n");
-}
+// formatDailyWordCsvField, dailyWordsToCsv live in lib/pure-logic.js (loaded first).
 
 function openDailyWordsSettings() {
   $("#dailyWordsInput").value = dailyWordsToCsv(dailyWords);
@@ -300,17 +290,14 @@ function shuffled(items) {
 }
 
 function pick(items) { return items[Math.floor(Math.random() * items.length)]; }
-function capitalize(value) { return value.charAt(0).toUpperCase() + value.slice(1); }
+// capitalize lives in lib/pure-logic.js (loaded first).
 
 function choiceQuestion(prompt, correctAnswer, distractors) {
   const answers = shuffled([correctAnswer, ...distractors.filter(answer => answer !== correctAnswer)]).slice(0, 4);
   return { type: "choice", prompt, answers, correct: answers.indexOf(correctAnswer) };
 }
 
-function getCorrectIndexes(question) {
-  const indexes = Array.isArray(question.correctAnswers) ? question.correctAnswers : [question.correct];
-  return [...new Set(indexes.map(Number).filter(index => Number.isInteger(index) && index >= 0 && index < question.answers.length))];
-}
+// getCorrectIndexes lives in lib/pure-logic.js (loaded first).
 
 function prepareQuestions(questions, options = {}) {
   const { shuffleQuestions = true, shuffleAnswers = true } = options;
@@ -515,11 +502,7 @@ function toggleCategoryDropdown(forceOpen = null) {
   $("#categoryDropdownToggle").setAttribute("aria-expanded", String(shouldOpen));
 }
 
-function testCountLabel(count) {
-  if (count === 1) return "test";
-  if (count % 10 >= 2 && count % 10 <= 4 && (count % 100 < 12 || count % 100 > 14)) return "testy";
-  return "testów";
-}
+// testCountLabel lives in lib/pure-logic.js (loaded first).
 
 function renderCategoryTabs() {
   const categories = getCategories();
@@ -1024,13 +1007,8 @@ function selectChoice(index) {
   $("#checkAnswer").disabled = selectedAnswer.length !== requiredChoices;
 }
 
-function normalize(value) { return String(value).trim().toLocaleLowerCase("en").replace(/[.!?]$/, ""); }
-function acceptedAnswers(answer) { return String(answer || "").split("|").map(part => part.trim()).filter(Boolean); }
-function matchesTextAnswer(userValue, answer) { const norm = normalize(userValue); return acceptedAnswers(answer).some(variant => normalize(variant) === norm); }
-function correctTokens(prompt) { return String(prompt || "").split(/\s+/).filter(Boolean); }
-function normalizeToken(token) { return String(token).replace(/^[^\p{L}\p{N}']+|[^\p{L}\p{N}']+$/gu, "").toLocaleLowerCase("en"); }
-function correctWrongIndex(question) { const target = normalizeToken(question.wrong || ""); return correctTokens(question.prompt).findIndex(token => normalizeToken(token) === target); }
-function buildCorrectedSentence(question) { const tokens = correctTokens(question.prompt); const index = correctWrongIndex(question); const fix = acceptedAnswers(question.answer)[0] || ""; if (index >= 0) tokens[index] = tokens[index].replace(/\p{L}[\p{L}\p{N}']*/u, fix); return tokens.join(" "); }
+// normalize, acceptedAnswers, matchesTextAnswer, correctTokens, normalizeToken,
+// correctWrongIndex, buildCorrectedSentence live in lib/pure-logic.js (loaded first).
 function clearAutoAdvance() {
   clearTimeout(autoAdvanceTimer);
   clearInterval(autoAdvanceCountdownTimer);
@@ -1181,18 +1159,7 @@ function celebrate() {
   setTimeout(() => { burst.remove(); stage.classList.remove("success-pop"); }, 2300);
 }
 
-function buildCorrectSentence(question, correctText) {
-  const prompt = String(question.prompt || "").trim();
-  const answer = String(correctText || "").trim();
-  if (/_{2,}/.test(prompt)) {
-    const completedSentence = prompt
-      .replace(/^(?:uzupełnij|complete)[^:]*:\s*/i, "")
-      .replace(/_{2,}/, answer)
-      .trim();
-    return completedSentence.charAt(0).toUpperCase() + completedSentence.slice(1);
-  }
-  return answer;
-}
+// buildCorrectSentence lives in lib/pure-logic.js (loaded first).
 
 function playSound(correct, correctSentence = "", onComplete = null) {
   if (!soundEnabled) { if (onComplete) onComplete(); return; }
@@ -1720,86 +1687,13 @@ function bindMatchPairsEditor(card) {
 }
 function renumberQuestions() { $$(".question-card").forEach((card, i) => $(".question-number b", card).textContent = i + 1); }
 
-function parseCsvLine(line) {
-  const fields = [];
-  let value = "";
-  let inQuotes = false;
-  for (let i = 0; i < line.length; i++) {
-    const char = line[i];
-    if (char === '"') {
-      if (inQuotes && line[i + 1] === '"') { value += '"'; i++; }
-      else inQuotes = !inQuotes;
-    } else if (char === "," && !inQuotes) {
-      fields.push(value.trim());
-      value = "";
-    } else value += char;
-  }
-  if (inQuotes) return null;
-  fields.push(value.trim());
-  return fields;
-}
+// parseCsvLine lives in lib/pure-logic.js (loaded first).
 
-const VERB_GENERATOR_THIRD_PERSON_SUBJECTS = new Set(["he", "she", "it"]);
-const VERB_GENERATOR_PRESENT_IRREGULAR_FORMS = { have: "has", be: "is" };
-// Past Simple form is the same for every subject, so this list only needs the base → past mapping.
-const VERB_GENERATOR_PAST_IRREGULAR_FORMS = {
-  be: "was", have: "had", go: "went", do: "did", make: "made", get: "got", know: "knew",
-  think: "thought", take: "took", see: "saw", come: "came", want: "wanted", look: "looked",
-  give: "gave", use: "used", find: "found", tell: "told", ask: "asked", work: "worked",
-  seem: "seemed", feel: "felt", try: "tried", leave: "left", call: "called", say: "said",
-  become: "became", show: "showed", bring: "brought", write: "wrote", sit: "sat",
-  stand: "stood", lose: "lost", pay: "paid", meet: "met", let: "let", begin: "began",
-  keep: "kept", hold: "held", speak: "spoke", run: "ran", read: "read", grow: "grew",
-  win: "won", teach: "taught", eat: "ate", drink: "drank", buy: "bought", send: "sent",
-  build: "built", spend: "spent", set: "set", learn: "learnt", understand: "understood",
-  hear: "heard", drive: "drove", break: "broke", catch: "caught",
-  choose: "chose", cut: "cut", draw: "drew", fall: "fell", feed: "fed", fight: "fought",
-  fly: "flew", forget: "forgot", forgive: "forgave", freeze: "froze", hide: "hid", hit: "hit",
-  hurt: "hurt", lay: "laid", lead: "led", lend: "lent", lie: "lay", light: "lit",
-  put: "put", ride: "rode", ring: "rang", rise: "rose", sell: "sold", shine: "shone",
-  shoot: "shot", shut: "shut", sing: "sang", sink: "sank", sleep: "slept", smell: "smelt",
-  speed: "sped", spell: "spelt", spill: "spilt", spread: "spread", swim: "swam",
-  swing: "swung", throw: "threw", wake: "woke", wear: "wore", cost: "cost"
-};
-
-function parseVerbToken(token) {
-  const [base, override] = token.split("=").map(part => part.trim());
-  return { verb: base, override: override || null };
-}
-
-function conjugatePresentSimple(verb, thirdPersonSingular) {
-  const trimmed = verb.trim();
-  if (!thirdPersonSingular) return trimmed;
-  const lower = trimmed.toLowerCase();
-  if (VERB_GENERATOR_PRESENT_IRREGULAR_FORMS[lower]) return VERB_GENERATOR_PRESENT_IRREGULAR_FORMS[lower];
-  if (/(?:s|x|z|sh|ch)$/i.test(trimmed)) return trimmed + "es";
-  if (/[^aeiou]y$/i.test(trimmed)) return trimmed.slice(0, -1) + "ies";
-  if (/o$/i.test(trimmed)) return trimmed + "es";
-  return trimmed + "s";
-}
-
-function conjugatePastSimple(verb) {
-  const trimmed = verb.trim();
-  const lower = trimmed.toLowerCase();
-  if (VERB_GENERATOR_PAST_IRREGULAR_FORMS[lower]) return VERB_GENERATOR_PAST_IRREGULAR_FORMS[lower];
-  if (/e$/i.test(trimmed)) return trimmed + "d";
-  if (/[^aeiou]y$/i.test(trimmed)) return trimmed.slice(0, -1) + "ied";
-  if (/[^aeiou][aeiou][bcdfgklmnprtvz]$/i.test(trimmed) && trimmed.length <= 4) return trimmed + trimmed.slice(-1) + "ed";
-  return trimmed + "ed";
-}
-
-function csvQuoteField(value) {
-  const text = String(value || "");
-  return /[,"\n]/.test(text) ? '"' + text.replace(/"/g, '""') + '"' : text;
-}
+// VERB_GENERATOR_* maps, parseVerbToken, conjugatePresentSimple, conjugatePastSimple,
+// csvQuoteField, questionAuxiliary live in lib/pure-logic.js (loaded first).
 
 function updateVerbTenseOptionStyle(input) {
   input.closest(".verb-tense-option").classList.toggle("active", input.checked);
-}
-
-function questionAuxiliary(isPast, thirdPersonSingular) {
-  if (isPast) return "Did";
-  return thirdPersonSingular ? "Does" : "Do";
 }
 
 function openVerbGenerator() {

@@ -5,6 +5,7 @@
   "main": "app.js",
   "scripts": {
     "test": "playwright test",
+    "test:unit": "node --test \"tests/unit/*.test.js\"",
     "test:heal": "claude -p \"Uruchom npx playwright test. Jeśli jakiś test zawiedzie, użyj agenta playwright-test-healer żeby go zdiagnozować i naprawić na żywej aplikacji, a potem uruchom testy jeszcze raz żeby potwierdzić, że wszystko przechodzi.\" --allowedTools \"Bash(npx playwright *)\" Edit MultiEdit Write --permission-mode acceptEdits",
     "test:heal:legacy": "claude -p \"Uruchom npx playwright test. Jeśli jakiś test zawiedzie, użyj agenta playwright-test-healer żeby go zdiagnozować i naprawić na żywej aplikacji, a potem uruchom testy jeszcze raz żeby potwierdzić, że wszystko przechodzi.\" --dangerously-skip-permissions"
   },
