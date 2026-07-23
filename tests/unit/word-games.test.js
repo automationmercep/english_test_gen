@@ -165,6 +165,30 @@ test("buildCrossword handles empty / too-short input without throwing", () => {
   assert.deepEqual(buildCrossword([{ answer: "a", clue: "single letter" }], { rng: seededRng() }).entries, []);
 });
 
+test("buildCrossword reliably places every word of a connectable set", () => {
+  // A 12-word set that all share letters. The multi-attempt search should place
+  // all of them regardless of the (real, unseeded) random order it explores.
+  const words = ["cat", "tiger", "rabbit", "tree", "apple", "elephant", "sun", "nose", "garden", "read", "orange", "lemon"];
+  const entries = words.map(w => ({ answer: w, clue: w }));
+  for (let run = 0; run < 30; run++) {
+    const cw = buildCrossword(entries); // real Math.random each run
+    assert.equal(cw.entries.length, words.length, `run ${run} placed ${cw.entries.length}/${words.length}`);
+    // Placed cells still spell each word (no corruption from the retry passes).
+    cw.entries.forEach(entry => {
+      const letters = crosswordAnswerLetters(entry.answer);
+      entry.cells.forEach(([r, c], i) => assert.equal(cw.grid[r][c].solution, letters[i]));
+    });
+  }
+});
+
+test("buildCrossword respects a small attempts budget without throwing", () => {
+  const cw = buildCrossword(
+    [{ answer: "cat", clue: "c" }, { answer: "tiger", clue: "t" }],
+    { rng: seededRng(), attempts: 1 }
+  );
+  assert.ok(cw.entries.length >= 1);
+});
+
 test("checkCrosswordCell compares case-insensitively and rejects blanks", () => {
   assert.ok(checkCrosswordCell("a", "A"));
   assert.ok(checkCrosswordCell("Z", "z"));

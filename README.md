@@ -264,7 +264,7 @@ Przykład:
 Rozwiąż krzyżówkę., cat=A pet that meows, tiger=Big striped cat, rabbit=Hops and has long ears, crossword
 ```
 
-Hasła muszą mieć wspólne litery, żeby dało się je skrzyżować — hasło, którego nie da się połączyć z żadnym innym, jest pomijane. Importer przyjmuje jako typ: `crossword`, `krzyzowka` lub `krzyzowki`.
+Aplikacja układa hasła automatycznie: przeszukuje wiele losowych wariantów rozmieszczenia i wybiera najlepszy (najwięcej ułożonych haseł, potem najwięcej skrzyżowań, potem najzwartsza siatka), więc dobrze dobrany zestaw układa się w całości. Hasła muszą mieć wspólne litery, żeby dało się je skrzyżować — hasło, którego nie da się połączyć z żadnym innym, zostanie pominięte. Importer przyjmuje jako typ: `crossword`, `krzyzowka` lub `krzyzowki`.
 
 ### Krzyżówka z pytaniami
 
