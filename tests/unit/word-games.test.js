@@ -12,6 +12,7 @@ const {
   crosswordAnswerLetters,
   buildCrossword,
   buildQuizCrossword,
+  buildKeyCrossword,
   checkCrosswordCell,
 } = require("../../lib/pure-logic.js");
 
@@ -234,4 +235,50 @@ test("buildQuizCrossword drops too-short answers and handles empty input", () =>
   ]);
   assert.equal(qc.entries.length, 1);
   assert.deepEqual(buildQuizCrossword([]).entries, []);
+});
+
+// ── Key-crossword (key word read down a highlighted column) ─────────────────
+test("buildKeyCrossword aligns the key letters into one column", () => {
+  const kc = buildKeyCrossword("KOT", [
+    { answer: "milk", clue: "White drink" },   // K at index 3
+    { answer: "dog", clue: "A pet that barks" }, // O at index 1
+    { answer: "cat", clue: "A pet that meows" }, // T at index 2
+  ]);
+  assert.equal(kc.key, "KOT");
+  assert.equal(kc.entries.length, 3);
+  // Key column = widest key-letter index (milk's K at 3).
+  assert.equal(kc.keyCol, 3);
+  // Reading the key column top-to-bottom spells the key.
+  const down = kc.grid.map(row => row[kc.keyCol]).filter(Boolean).map(cell => cell.solution).join("");
+  assert.equal(down, "KOT");
+  // The key cells are flagged.
+  kc.entries.forEach(entry => {
+    const keyCell = entry.cells.find(([, c]) => c === kc.keyCol);
+    assert.ok(keyCell, "each row crosses the key column");
+    assert.equal(kc.grid[keyCell[0]][keyCell[1]].key, true);
+  });
+  // Each row still spells its own answer.
+  kc.entries.forEach(entry => {
+    const letters = crosswordAnswerLetters(entry.answer);
+    entry.cells.forEach(([r, c], i) => assert.equal(kc.grid[r][c].solution, letters[i]));
+  });
+});
+
+test("buildKeyCrossword skips key letters whose word does not contain them", () => {
+  // Second word "sun" has no 'O' for key letter O → that row is dropped, so the
+  // built puzzle no longer covers every key letter.
+  const kc = buildKeyCrossword("KOT", [
+    { answer: "milk", clue: "K" },
+    { answer: "sun", clue: "should be O but has none" },
+    { answer: "cat", clue: "T" },
+  ]);
+  assert.ok(kc.entries.length < 3);
+  assert.ok(kc.entries.every(e => crosswordAnswerLetters(e.answer) !== "SUN"));
+});
+
+test("buildKeyCrossword handles empty / unusable input without throwing", () => {
+  assert.deepEqual(buildKeyCrossword("", []).entries, []);
+  assert.deepEqual(buildKeyCrossword("KOT", []).entries, []);
+  // No answer supplied for the key letter → nothing to place.
+  assert.deepEqual(buildKeyCrossword("KOT", [null, null, null]).entries, []);
 });

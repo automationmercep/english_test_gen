@@ -15,7 +15,7 @@ async function setCardType(card: ReturnType<Page['locator']>, type: string) {
 }
 
 test.describe('Tworzenie gier słownych w kreatorze', () => {
-  test('Ręczne zbudowanie testu z anagramem, wykreślanką, krzyżówką i krzyżówką z pytaniami', async ({ page }) => {
+  test('Ręczne zbudowanie testu z anagramem, wykreślanką, krzyżówką, krzyżówką z pytaniami i krzyżówką z hasłem', async ({ page }) => {
     await page.goto('/');
     await page.getByRole('button', { name: 'Stwórz test' }).click();
     await page.getByRole('textbox', { name: 'Nazwa testu' }).fill('Gry słowne — kreator');
@@ -59,22 +59,36 @@ test.describe('Tworzenie gier słownych w kreatorze', () => {
     await qcRows.nth(2).locator('.crossword-answer').fill('fish');
     await qcRows.nth(2).locator('.crossword-clue').fill('Lives in water');
 
+    // Question 5 — keycross (key word read down a highlighted column)
+    await page.getByRole('button', { name: '＋ Dodaj kolejne pytanie' }).click();
+    const q5 = page.getByRole('article').filter({ hasText: 'Pytanie 5' });
+    await setCardType(q5, 'keycross');
+    await q5.getByPlaceholder('Wpisz treść pytania…').fill('Odgadnij hasło.');
+    await q5.locator('.keycross-key').fill('KOT');
+    const kcRows = q5.locator('.crossword-entry-row');
+    await kcRows.nth(0).locator('.crossword-answer').fill('milk');
+    await kcRows.nth(0).locator('.crossword-clue').fill('White drink');
+    await kcRows.nth(1).locator('.crossword-answer').fill('dog');
+    await kcRows.nth(1).locator('.crossword-clue').fill('A pet that barks');
+    await kcRows.nth(2).locator('.crossword-answer').fill('cat');
+    await kcRows.nth(2).locator('.crossword-clue').fill('A pet that meows');
+
     // Save
     await page.getByRole('button', { name: 'Zapisz test →' }).click();
     await expect(page.locator('#homeView')).toHaveClass(/active/);
     await expect(page.locator('#toast')).toHaveText('Test zapisany — możesz zaczynać!');
     const savedCard = page.getByRole('button', { name: 'Rozpocznij test Gry słowne — kreator' });
     await expect(savedCard).toBeVisible();
-    await expect(savedCard.locator('p', { hasText: 'pytań' })).toHaveText('4 pytań');
+    await expect(savedCard.locator('p', { hasText: 'pytań' })).toHaveText('5 pytań');
 
-    // Re-open the quiz in the editor and confirm the four cards round-tripped with
+    // Re-open the quiz in the editor and confirm the five cards round-tripped with
     // the correct types and that their answers/clues were persisted.
     await savedCard.getByLabel('Edytuj test').click();
     await expect(page.getByRole('heading', { name: 'Edytuj test' })).toBeVisible();
     const cards = page.locator('#questionList .question-card');
-    await expect(cards).toHaveCount(4);
+    await expect(cards).toHaveCount(5);
     const types = await cards.evaluateAll(nodes => nodes.map(n => (n as HTMLElement).dataset.type));
-    expect(types).toEqual(['anagram', 'wordsearch', 'crossword', 'quizcross']);
+    expect(types).toEqual(['anagram', 'wordsearch', 'crossword', 'quizcross', 'keycross']);
 
     // Spot-check that editor fields survived the round trip.
     await expect(cards.nth(0).getByPlaceholder('Np. elephant')).toHaveValue('elephant');
@@ -83,5 +97,7 @@ test.describe('Tworzenie gier słownych w kreatorze', () => {
     await expect(cards.nth(2).locator('.crossword-entry-row').first().locator('.crossword-answer')).toHaveValue('cat');
     await expect(cards.nth(3).locator('.crossword-entry-row')).toHaveCount(3);
     await expect(cards.nth(3).locator('.crossword-entry-row').first().locator('.crossword-clue')).toHaveValue('A pet that meows');
+    await expect(cards.nth(4).locator('.keycross-key')).toHaveValue('KOT');
+    await expect(cards.nth(4).locator('.crossword-entry-row').first().locator('.crossword-answer')).toHaveValue('milk');
   });
 });

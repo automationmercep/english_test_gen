@@ -96,3 +96,26 @@ Wspólne kroki przygotowania: jak wyżej (import CSV, zapis, start).
 #### 3.2 Błędne odpowiedzi są odrzucane
 **Expected:**
 - Po wpisaniu błędnych liter informacja zwrotna ma stan „bad", a wszystkie kratki są oznaczone jako błędne
+
+### 4. Rozgrywka krzyżówki z hasłem (keycross)
+
+**Seed:** `seed.spec.ts`
+
+Ten scenariusz weryfikuje typ `keycross` — krzyżówkę z hasłem czytanym w pionie z podświetlonej kolumny. Podaje się hasło i dla każdej jego litery słowo je zawierające; słowa układają się poziomo tak, że litery hasła trafiają w jedną kolumnę.
+
+Zestaw (1 pytanie, hasło `KOT`):
+```
+Odgadnij hasło., KOT, milk=White drink, dog=A pet that barks, cat=A pet that meows, keycross
+```
+
+Wspólne kroki przygotowania: jak wyżej (import CSV, zapis, start).
+
+#### 4.1 Poprawnie wpisane hasła są zaliczane
+**Expected:**
+- Etykieta pytania to "Krzyżówka z hasłem"; jest tyle rzędów, ile liter hasła (tu 3), a dokładnie 3 kratki (po jednej na rząd) są podświetlone jako kolumna hasła
+- Przycisk "Sprawdź odpowiedź" jest nieaktywny, dopóki wszystkie kratki nie są wypełnione
+- Po poprawnym wypełnieniu informacja zwrotna ma stan „good", wszystkie kratki są poprawne, wynik pokazuje 1 poprawną odpowiedź
+
+#### 4.2 Błędne odpowiedzi są odrzucane
+**Expected:**
+- Po wpisaniu błędnych liter informacja zwrotna ma stan „bad", a wszystkie kratki są oznaczone jako błędne

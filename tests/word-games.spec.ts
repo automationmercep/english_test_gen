@@ -243,3 +243,55 @@ test.describe('Rozgrywka krzyżówki z pytaniami', () => {
     await expect(page.locator('.cw-cell.wrong')).toHaveCount(solution.length);
   });
 });
+
+const KEYCROSS_CSV = 'Odgadnij hasło., KOT, milk=White drink, dog=A pet that barks, cat=A pet that meows, keycross';
+
+async function setupKeyCross(page: Page, title: string) {
+  await page.goto('/');
+  await page.locator('.nav-link[data-view="create"]').click();
+  await page.locator('#quizTitle').fill(title);
+  await page.locator('#csvInput').fill(KEYCROSS_CSV);
+  await page.locator('#importCsv').click();
+  await expect(page.getByText('Dodano 1 pytanie')).toBeVisible();
+  await page.locator('#saveQuizButton').click();
+  await expect(page.locator('#homeView')).toHaveClass(/active/);
+  await page.getByRole('button', { name: `Rozpocznij test ${title}` }).click();
+  await expect(page.locator('#questionMeta')).toHaveText('Krzyżówka z hasłem');
+}
+
+test.describe('Rozgrywka krzyżówki z hasłem', () => {
+  test('Poprawnie wpisane hasła są zaliczane, a klucz jest podświetlony', async ({ page }) => {
+    await setupKeyCross(page, 'Krzyżówka hasło — poprawnie');
+
+    // 3 key letters (KOT) => 3 rows and exactly 3 highlighted key cells.
+    await expect(page.locator('.keycross-row')).toHaveCount(3);
+    await expect(page.locator('.cw-keycell')).toHaveCount(3);
+    const solution = await crosswordSolution(page);
+    expect(solution.length).toBe('milk'.length + 'dog'.length + 'cat'.length);
+
+    await expect(page.locator('#checkAnswer')).toBeDisabled();
+    for (const [r, c, letter] of solution) {
+      await page.locator(`.cw-input[data-r="${r}"][data-c="${c}"]`).fill(letter);
+    }
+    await expect(page.locator('#checkAnswer')).toBeEnabled();
+    await page.locator('#checkAnswer').click();
+    await expect(page.locator('#feedback')).toHaveClass(/good/);
+    await expect(page.locator('.cw-cell.correct')).toHaveCount(solution.length);
+    await page.locator('#checkAnswer').click();
+
+    await expect(page.locator('#resultsView')).toHaveClass(/active/);
+    await expect(page.locator('#reviewList .review-item.good')).toHaveCount(1);
+  });
+
+  test('Błędne odpowiedzi są odrzucane', async ({ page }) => {
+    await setupKeyCross(page, 'Krzyżówka hasło — błędnie');
+    const solution = await crosswordSolution(page);
+    for (const [r, c, letter] of solution) {
+      const wrong = letter === 'Z' ? 'A' : String.fromCharCode(letter.charCodeAt(0) + 1);
+      await page.locator(`.cw-input[data-r="${r}"][data-c="${c}"]`).fill(wrong);
+    }
+    await page.locator('#checkAnswer').click();
+    await expect(page.locator('#feedback')).toHaveClass(/bad/);
+    await expect(page.locator('.cw-cell.wrong')).toHaveCount(solution.length);
+  });
+});

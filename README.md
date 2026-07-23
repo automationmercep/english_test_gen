@@ -25,6 +25,7 @@ Następnie przejdź do `http://localhost:8000`.
 - typ **Wykreślanka** — kwadratowa siatka liter z ukrytymi słowami (poziomo, pionowo i na ukos, także wspak); uczący się zaznacza każde słowo, klikając jego pierwszą i ostatnią literę, dostępny w kreatorze i imporcie CSV (`wordsearch`),
 - typ **Krzyżówka** — hasła splatające się na wspólnych literach w jednej siatce, z ponumerowanymi wskazówkami poziomo/pionowo; uczący się wpisuje litery w kratki, dostępny w kreatorze i imporcie CSV (`crossword`),
 - typ **Krzyżówka z pytaniami** — każde hasło to osobny ponumerowany poziomy rząd kratek z pytaniem obok (bez splatania); uczący się wpisuje odpowiedzi literami, dostępny w kreatorze i imporcie CSV (`quizcross`),
+- typ **Krzyżówka z hasłem** — podajesz hasło (np. `KOT`) i dla każdej jego litery jedno słowo je zawierające wraz z pytaniem; słowa układają się poziomo tak, że litery hasła trafiają w jedną podświetloną kolumnę, którą czyta się z góry na dół, dostępny w kreatorze i imporcie CSV (`keycross`),
 - opcjonalne polecenie wyświetlane nad treścią pytania (np. „Complete the sentence”), ustawiane w kreatorze lub przez import CSV.
 
 ### Kreator i edycja testów
@@ -39,7 +40,7 @@ Następnie przejdź do `http://localhost:8000`.
 
 ### Import z CSV
 
-- import wielu pytań z wklejonej struktury CSV, z typem pytania (`choice`, `fill`, `order`, `fiszka`, `match`, `correct`, `anagram`, `wordsearch`, `crossword`, `quizcross`) w ostatnim polu importowanego wiersza (szczegóły w sekcji [Import pytań z CSV](#import-pytań-z-csv)).
+- import wielu pytań z wklejonej struktury CSV, z typem pytania (`choice`, `fill`, `order`, `fiszka`, `match`, `correct`, `anagram`, `wordsearch`, `crossword`, `quizcross`, `keycross`) w ostatnim polu importowanego wiersza (szczegóły w sekcji [Import pytań z CSV](#import-pytań-z-csv)).
 
 ### Kategorie i organizacja
 
@@ -284,6 +285,24 @@ Odpowiedz na pytania., cat=A pet that meows, dog=A pet that barks, fish=Lives in
 
 W odróżnieniu od zwykłej krzyżówki odpowiedzi nie muszą mieć wspólnych liter — każda trafia do własnego rzędu. Importer przyjmuje jako typ: `quizcross` lub `krzyzowka z pytaniami`.
 
+### Krzyżówka z hasłem
+
+Pytanie typu „Krzyżówka z hasłem" ma ukryte hasło, które czyta się w pionie z podświetlonej kolumny. Podajesz hasło, a następnie dla każdej jego litery jedno słowo zawierające tę literę wraz z pytaniem. Aplikacja układa słowa poziomo tak, by wskazana litera każdego słowa trafiła w jedną kolumnę.
+
+Układ pól — **pierwsze pole po poleceniu to hasło**, kolejne to pary `słowo=pytanie` (jedna na każdą literę hasła, w tej samej kolejności):
+
+```text
+polecenie, HASŁO, słowo1=pytanie1, słowo2=pytanie2, słowo3=pytanie3, keycross
+```
+
+Przykład (hasło `KOT` — litery K, O, T):
+
+```csv
+Odgadnij hasło., KOT, milk=White drink, dog=A pet that barks, cat=A pet that meows, keycross
+```
+
+Tutaj `milk` zawiera **K**, `dog` zawiera **O**, `cat` zawiera **T** — te litery ustawią się w jednej kolumnie i utworzą hasło KOT. Każde słowo musi zawierać odpowiednią literę hasła (i mieć co najmniej dwie litery), inaczej wiersz jest pomijany. Importer przyjmuje jako typ: `keycross` lub `krzyzowka z haslem`.
+
 ### Mieszanie różnych typów pytań
 
 W jednym imporcie można łączyć wszystkie typy pytań — jednokrotny i wielokrotny wybór, uzupełnianie zdań, układanie, dopasowywanie, fiszki i poprawianie błędu:
@@ -309,7 +328,8 @@ Typ każdego pytania określa ostatnie pole:
 - `anagram` — układanie słowa z liter,
 - `wordsearch` — wykreślanka,
 - `crossword` — krzyżówka ze splatającymi się hasłami,
-- `quizcross` — krzyżówka z pytaniami (rząd na hasło).
+- `quizcross` — krzyżówka z pytaniami (rząd na hasło),
+- `keycross` — krzyżówka z hasłem czytanym w pionie z podświetlonej kolumny.
 
 Oznaczenie typu jest odporne na wielkość liter i polskie znaki diakrytyczne (`uzupełnij` = `uzupelnij`). Każdy typ ma kilka dozwolonych form:
 
@@ -325,8 +345,9 @@ Oznaczenie typu jest odporne na wielkość liter i polskie znaki diakrytyczne (`
 | Wykreślanka | `wordsearch`, `wykreslanka`, `wykreslanki`, `szukaj slow` |
 | Krzyżówka | `crossword`, `krzyzowka`, `krzyzowki` |
 | Krzyżówka z pytaniami | `quizcross`, `krzyzowka z pytaniami` |
+| Krzyżówka z hasłem | `keycross`, `krzyzowka z haslem` |
 
-Najbardziej jednoznaczne są angielskie oznaczenia `choice`, `fill`, `order`, `match`, `fiszka`, `correct`, `anagram`, `wordsearch`, `crossword` i `quizcross`.
+Najbardziej jednoznaczne są angielskie oznaczenia `choice`, `fill`, `order`, `match`, `fiszka`, `correct`, `anagram`, `wordsearch`, `crossword`, `quizcross` i `keycross`.
 
 Przykład wykorzystujący wszystkie dozwolone formy (po jednym wierszu na każdą):
 
@@ -362,6 +383,8 @@ Rozwiąż krzyżówkę., cat=meows, tiger=striped cat, rabbit=hops here, crosswo
 Rozwiąż krzyżówkę., cat=meows, tea=a hot drink, krzyżówka
 Odpowiedz na pytania., cat=A pet that meows, dog=A pet that barks, quizcross
 Odpowiedz na pytania., cat=meows, fish=swims, krzyżówka z pytaniami
+Odgadnij hasło., KOT, milk=White drink, dog=A pet that barks, cat=A pet that meows, keycross
+Odgadnij hasło., DOM, mydło=soap, okno=window, komin=chimney, krzyżówka z hasłem
 ```
 
 ### Polecenie nad pytaniem (opcjonalnie)

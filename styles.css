@@ -260,6 +260,20 @@ nav { display: flex; gap: 30px; height: 100%; }
 .cw-row .cw-cell { width: 46px; height: 46px; }
 .cw-row .cw-input { font-size: 24px; }
 .quizcross-builder.disabled .cw-input { cursor: default; }
+/* Key-crossword: aligned rows, the key letter sits in one highlighted column */
+.keycross-builder { grid-column: 1 / -1; display: grid; gap: 10px; }
+.keycross-hint { color: var(--muted); font-size: 14px; margin: 0 0 4px; }
+.keycross-row { display: flex; align-items: center; gap: 18px; flex-wrap: wrap; }
+.keycross-cells { display: grid; gap: 4px; }
+.keycross-cells .cw-cell { width: 42px; height: 42px; position: relative; }
+.keycross-cells .cw-cell.cw-blank { border: 0; background: transparent; }
+.keycross-cells .cw-keycell .cw-input { background: #fdf2c4; border-color: var(--green); }
+.keycross-cells .cw-keycell.correct .cw-input { background: #dcf0df; }
+.keycross-cells .cw-grid-number { position: absolute; top: 2px; left: 4px; font-size: 12px; font-weight: 700; color: var(--muted); pointer-events: none; z-index: 1; }
+.keycross-builder .cw-clue { flex: 1 1 200px; min-width: 160px; font-size: 20px; line-height: 1.4; }
+.keycross-builder .cw-clue .cw-number { font-weight: 700; color: var(--green); margin-right: 6px; }
+.keycross-builder.disabled .cw-input { cursor: default; }
+.keycross-key { text-transform: uppercase; letter-spacing: 2px; font-weight: 700; margin-bottom: 12px; }
 .crossword-entries-editor { display: grid; gap: 10px; margin-bottom: 14px; }
 .crossword-entry-row { display: grid; grid-template-columns: minmax(80px, 1fr) minmax(120px, 2fr) auto; gap: 8px; align-items: center; }
 .crossword-entry-row input { border: 1px solid var(--line); border-radius: 11px; padding: 9px 11px; background: transparent; color: var(--ink); }

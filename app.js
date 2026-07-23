@@ -343,9 +343,11 @@ function prepareQuestions(questions, options = {}) {
       const words = Array.isArray(question.words) ? question.words : [];
       return { ...question, words: [...words], grid: buildWordSearchGrid(words) };
     }
-    if (question.type === "crossword" || question.type === "quizcross") {
+    if (question.type === "crossword" || question.type === "quizcross" || question.type === "keycross") {
       const clues = Array.isArray(question.clues) ? question.clues : [];
-      const layout = question.type === "quizcross" ? buildQuizCrossword(clues) : buildCrossword(clues);
+      const layout = question.type === "quizcross" ? buildQuizCrossword(clues)
+        : question.type === "keycross" ? buildKeyCrossword(question.key, clues)
+        : buildCrossword(clues);
       return { ...question, clues: clues.map(clue => ({ ...clue })), crossword: layout };
     }
     if (question.type !== "choice") return { ...question };
@@ -714,6 +716,19 @@ function buildPrintableQuestionHtml(question, index) {
     }).join("");
     return `<div class="print-question"><p><strong>${number}.</strong> ${escapeHtml(question.prompt)}</p><div class="print-quizcross">${rowsHtml}</div></div>`;
   }
+  if (question.type === "keycross") {
+    const built = buildKeyCrossword(question.key, question.clues);
+    const rowsHtml = built.entries.map(entry => {
+      let boxes = "";
+      for (let c = 0; c < built.cols; c++) {
+        const cell = built.grid[entry.row][c];
+        if (!cell) boxes += '<span class="qc-void"></span>';
+        else boxes += `<span class="qc-box ${cell.key ? "qc-keybox" : ""}">${c === entry.col ? `<span class="qc-num">${entry.number}</span>` : ""}</span>`;
+      }
+      return `<div class="print-qc-row"><span class="print-qc-boxes">${boxes}</span><span class="print-qc-clue">${entry.number}. ${escapeHtml(entry.clue || entry.answer)}</span></div>`;
+    }).join("");
+    return `<div class="print-question"><p><strong>${number}.</strong> ${escapeHtml(question.prompt)}</p><div class="print-quizcross">${rowsHtml}</div><p class="print-answer-line">Hasło z kolumny: ____________________</p></div>`;
+  }
   return `<div class="print-question"><p><strong>${number}.</strong> ${escapeHtml(question.prompt)}</p><p class="print-answer-line">Odpowiedź: ______________________________________________</p></div>`;
 }
 
@@ -735,6 +750,9 @@ function buildAnswerKeyHtml(question, index) {
     answerText = buildCrossword(question.clues).entries.map(entry => `${entry.number} ${entry.dir === "across" ? "poz." : "pion."} ${entry.answer}`).join(", ");
   } else if (question.type === "quizcross") {
     answerText = buildQuizCrossword(question.clues).entries.map(entry => `${entry.number}. ${entry.answer}`).join(", ");
+  } else if (question.type === "keycross") {
+    const built = buildKeyCrossword(question.key, question.clues);
+    answerText = `HASŁO: ${built.key} — ${built.entries.map(entry => `${entry.number}. ${entry.answer}`).join(", ")}`;
   } else {
     answerText = question.answer;
   }
@@ -774,8 +792,11 @@ function printQuiz(id) {
       .print-qc-row { display: flex; align-items: center; gap: 12px; }
       .print-qc-clue { font-size: 13px; min-width: 220px; }
       .print-qc-boxes { display: inline-flex; gap: 0; }
-      .print-qc-boxes .qc-box { width: 24px; height: 24px; border: 1px solid #17251f; display: inline-block; }
+      .print-qc-boxes .qc-box, .print-qc-boxes .qc-void { width: 24px; height: 24px; display: inline-block; position: relative; box-sizing: border-box; }
+      .print-qc-boxes .qc-box { border: 1px solid #17251f; }
       .print-qc-boxes .qc-box + .qc-box { border-left: 0; }
+      .print-qc-boxes .qc-keybox { background: #e6e6e6; }
+      .print-qc-boxes .qc-num { position: absolute; top: 0; left: 1px; font-size: 8px; font-weight: 700; }
       .print-answer-key { page-break-before: always; }
       .print-answer-key ol, .print-answer-key ul { padding-left: 18px; }
       .print-answer-key li { margin-bottom: 6px; }
@@ -820,7 +841,7 @@ function startQuizWrong() {
       if (q.type === "order") { const { wordTiles, ...rest } = q; return { ...rest, words: q.words || String(q.answer).split(/\s+/).filter(Boolean) }; }
       if (q.type === "anagram") { const { letterTiles, ...rest } = q; return rest; }
       if (q.type === "wordsearch") { const { grid, ...rest } = q; return rest; }
-      if (q.type === "crossword" || q.type === "quizcross") { const { crossword, ...rest } = q; return rest; }
+      if (q.type === "crossword" || q.type === "quizcross" || q.type === "keycross") { const { crossword, ...rest } = q; return rest; }
       return q;
     });
   if (!wrongQs.length) return;
@@ -908,7 +929,7 @@ function renderQuestion() {
   clearAutoAdvance();
   clearQuestionTimer();
   const question = activeQuiz.questions[questionIndex];
-  selectedAnswer = question.type === "choice" || question.type === "order" || question.type === "anagram" ? [] : question.type === "match" || question.type === "crossword" || question.type === "quizcross" ? {} : question.type === "wordsearch" ? { found: [], cells: [] } : question.type === "correct" ? { wordIndex: null, fix: "" } : null; hasChecked = false;
+  selectedAnswer = question.type === "choice" || question.type === "order" || question.type === "anagram" ? [] : question.type === "match" || question.type === "crossword" || question.type === "quizcross" || question.type === "keycross" ? {} : question.type === "wordsearch" ? { found: [], cells: [] } : question.type === "correct" ? { wordIndex: null, fix: "" } : null; hasChecked = false;
   matchSelectedTileId = null;
   wordSearchAnchor = null;
   const playImage = $("#playQuizImage");
@@ -924,7 +945,7 @@ function renderQuestion() {
   $(".quiz-stage").classList.toggle("picture-mode", Boolean(questionImage));
   $("#progressFill").style.width = `${((questionIndex + 1) / activeQuiz.questions.length) * 100}%`;
   $("#progressText").textContent = `${questionIndex + 1} / ${activeQuiz.questions.length}`;
-  $("#questionMeta").textContent = question.instruction || (question.type === "choice" ? "Wybierz odpowiedź" : question.type === "order" ? "Uporządkuj zdanie" : question.type === "match" ? "Dopasuj" : question.type === "flashcard" ? "Fiszka" : question.type === "correct" ? "Popraw błąd" : question.type === "anagram" ? "Anagram" : question.type === "wordsearch" ? "Wykreślanka" : question.type === "crossword" ? "Krzyżówka" : question.type === "quizcross" ? "Krzyżówka z pytaniami" : "Uzupełnij zdanie");
+  $("#questionMeta").textContent = question.instruction || (question.type === "choice" ? "Wybierz odpowiedź" : question.type === "order" ? "Uporządkuj zdanie" : question.type === "match" ? "Dopasuj" : question.type === "flashcard" ? "Fiszka" : question.type === "correct" ? "Popraw błąd" : question.type === "anagram" ? "Anagram" : question.type === "wordsearch" ? "Wykreślanka" : question.type === "crossword" ? "Krzyżówka" : question.type === "quizcross" ? "Krzyżówka z pytaniami" : question.type === "keycross" ? "Krzyżówka z hasłem" : "Uzupełnij zdanie");
   setQuestionText(question.prompt);
   const requiredChoices = question.type === "choice" ? getCorrectIndexes(question).length : 0;
   if (!question.instruction && question.type === "choice" && requiredChoices > 1) $("#questionMeta").textContent = "Wybierz odpowiedzi";
@@ -938,6 +959,7 @@ function renderQuestion() {
     : question.type === "wordsearch" ? "Zaznacz każde ukryte słowo, klikając pierwszą i ostatnią literę."
     : question.type === "crossword" ? "Wpisz litery w kratki, korzystając z ponumerowanych haseł (poziomo / pionowo)."
     : question.type === "quizcross" ? "Odpowiedz na każde pytanie, wpisując litery odpowiedzi w kratki."
+    : question.type === "keycross" ? "Odpowiedz na pytania; litery w podświetlonej kolumnie utworzą hasło."
     : "Wpisz brakujące słowo lub wyrażenie.";
   $("#feedback").className = "feedback"; $("#feedback").innerHTML = "";
   const area = $("#answerArea");
@@ -963,6 +985,8 @@ function renderQuestion() {
     renderCrosswordAnswer(question);
   } else if (question.type === "quizcross") {
     renderQuizCrosswordAnswer(question);
+  } else if (question.type === "keycross") {
+    renderKeyCrosswordAnswer(question);
   } else {
     area.innerHTML = '<input class="fill-answer" id="fillInput" autocomplete="off" placeholder="Wpisz odpowiedź…" aria-label="Twoja odpowiedź" />';
     const input = $("#fillInput");
@@ -1157,6 +1181,28 @@ function renderQuizCrosswordAnswer(question, disabled = false) {
   bindCrosswordInputs(question, area);
 }
 
+function renderKeyCrosswordAnswer(question, disabled = false) {
+  const area = $("#answerArea");
+  const { rows, cols, grid, entries, keyCol } = question.crossword;
+  // Aligned grid so the key column lines up; the clue for each row sits to its right.
+  const rowsHtml = entries.map(entry => {
+    const cellsHtml = [];
+    for (let c = 0; c < cols; c++) {
+      const cell = grid[entry.row][c];
+      if (!cell) { cellsHtml.push('<div class="cw-cell cw-blank"></div>'); continue; }
+      const value = selectedAnswer[`${entry.row},${c}`] || "";
+      const stateClass = disabled ? (checkCrosswordCell(value, cell.solution) ? "correct" : "wrong") : "";
+      const keyClass = cell.key ? "cw-keycell" : "";
+      const numberHtml = cell.number ? `<span class="cw-grid-number">${cell.number}</span>` : "";
+      cellsHtml.push(`<div class="cw-cell ${stateClass} ${keyClass}">${numberHtml}<input class="cw-input" data-r="${entry.row}" data-c="${c}" maxlength="1" inputmode="text" aria-label="Hasło ${entry.number}, litera ${c + 1}" value="${escapeHtml(value)}" ${disabled ? "disabled" : ""} /></div>`);
+    }
+    return `<div class="keycross-row"><div class="keycross-cells" style="grid-template-columns: repeat(${cols}, 1fr)">${cellsHtml.join("")}</div><div class="cw-clue"><span class="cw-number">${entry.number}.</span> ${escapeHtml(entry.clue || entry.answer)}</div></div>`;
+  }).join("");
+  area.innerHTML = `<div class="keycross-builder ${disabled ? "disabled" : ""}" style="--key-col:${keyCol}"><p class="keycross-hint">Litery w kolorowej kolumnie utworzą hasło.</p>${rowsHtml}</div>`;
+  if (disabled) return;
+  bindCrosswordInputs(question, area);
+}
+
 // Shared: wire up letter-cell inputs (auto-advance, backspace-back, enable check).
 function bindCrosswordInputs(question, area) {
   const totalCells = question.crossword.grid.reduce((sum, rowCells) => sum + rowCells.filter(Boolean).length, 0);
@@ -1313,12 +1359,13 @@ function checkOrNext() {
     : question.type === "correct" ? selectedAnswer.wordIndex === correctWrongIndex(question) && matchesTextAnswer(selectedAnswer.fix, question.answer)
     : question.type === "anagram" ? checkAnagram(selectedAnswer.map(id => question.letterTiles.find(tile => tile.id === id)?.char || "").join(""), question.answer)
     : question.type === "wordsearch" ? question.grid.words.length > 0 && selectedAnswer.found.length === question.grid.words.length
-    : question.type === "crossword" || question.type === "quizcross" ? crosswordAllCorrect(question)
+    : question.type === "crossword" || question.type === "quizcross" || question.type === "keycross" ? crosswordAllCorrect(question)
     : matchesTextAnswer(selectedAnswer, question.answer);
   const correctText = question.type === "choice" ? correctIndexes.map(index => question.answers[index]).join(", ")
     : question.type === "match" ? question.pairs.map(pair => `${pair.left} → ${pair.right}`).join(", ")
     : question.type === "correct" ? `${correctTokens(question.prompt)[correctWrongIndex(question)] || question.wrong} → ${acceptedAnswers(question.answer)[0] || ""}`
     : question.type === "wordsearch" ? question.grid.words.join(", ")
+    : question.type === "keycross" ? `Hasło: ${question.crossword.key} — ${question.crossword.entries.map(entry => `${entry.number}. ${entry.answer}`).join(", ")}`
     : question.type === "crossword" || question.type === "quizcross" ? question.crossword.entries.map(entry => `${entry.number}. ${entry.answer}`).join(", ")
     : acceptedAnswers(question.answer)[0] || question.answer;
   const correctSentence = question.type === "correct" ? buildCorrectedSentence(question) : buildCorrectSentence(question, correctText);
@@ -1328,9 +1375,9 @@ function checkOrNext() {
     : question.type === "correct" ? `${selectedAnswer.wordIndex !== null ? correctTokens(question.prompt)[selectedAnswer.wordIndex] : "—"} → ${selectedAnswer.fix || ""}`
     : question.type === "anagram" ? selectedAnswer.map(id => question.letterTiles.find(tile => tile.id === id)?.char || "").join("")
     : question.type === "wordsearch" ? `${selectedAnswer.found.length}/${question.grid.words.length}`
-    : question.type === "crossword" || question.type === "quizcross" ? `${crosswordCorrectCount(question)}/${crosswordCellCount(question)}`
+    : question.type === "crossword" || question.type === "quizcross" || question.type === "keycross" ? `${crosswordCorrectCount(question)}/${crosswordCellCount(question)}`
     : selectedAnswer;
-  const result = { prompt: question.prompt, correct, answer: userText, correctAnswer: correctText, selectedIndexes: question.type === "order" || question.type === "anagram" ? [...selectedAnswer] : selectedIndexes, matchAssignment: question.type === "match" ? { ...selectedAnswer } : undefined, correctAssignment: question.type === "correct" ? { ...selectedAnswer } : undefined, wordSearchFound: question.type === "wordsearch" ? { found: [...selectedAnswer.found], cells: selectedAnswer.cells.map(cell => [...cell]) } : undefined, crosswordFill: question.type === "crossword" || question.type === "quizcross" ? { ...selectedAnswer } : undefined, correctSentence };
+  const result = { prompt: question.prompt, correct, answer: userText, correctAnswer: correctText, selectedIndexes: question.type === "order" || question.type === "anagram" ? [...selectedAnswer] : selectedIndexes, matchAssignment: question.type === "match" ? { ...selectedAnswer } : undefined, correctAssignment: question.type === "correct" ? { ...selectedAnswer } : undefined, wordSearchFound: question.type === "wordsearch" ? { found: [...selectedAnswer.found], cells: selectedAnswer.cells.map(cell => [...cell]) } : undefined, crosswordFill: question.type === "crossword" || question.type === "quizcross" || question.type === "keycross" ? { ...selectedAnswer } : undefined, correctSentence };
   results[questionIndex] = result;
   hasChecked = true;
   showCheckedQuestion(question, result);
@@ -1379,6 +1426,9 @@ function showCheckedQuestion(question, result) {
   } else if (question.type === "quizcross") {
     selectedAnswer = { ...(result.crosswordFill || {}) };
     renderQuizCrosswordAnswer(question, true);
+  } else if (question.type === "keycross") {
+    selectedAnswer = { ...(result.crosswordFill || {}) };
+    renderKeyCrosswordAnswer(question, true);
   } else { const input = $("#fillInput"); input.value = result.answer || ""; input.disabled = true; input.classList.add(result.correct ? "correct" : "wrong"); }
   const feedback = $("#feedback"); feedback.classList.add(result.correct ? "good" : "bad");
   feedback.innerHTML = result.correct
@@ -1403,7 +1453,7 @@ function restoreCheckedQuestion(question, result) {
     : question.type === "match" ? { ...(result.matchAssignment || {}) }
     : question.type === "correct" ? { ...(result.correctAssignment || { wordIndex: null, fix: "" }) }
     : question.type === "wordsearch" ? { found: [...(result.wordSearchFound?.found || [])], cells: (result.wordSearchFound?.cells || []).map(cell => [...cell]) }
-    : question.type === "crossword" || question.type === "quizcross" ? { ...(result.crosswordFill || {}) }
+    : question.type === "crossword" || question.type === "quizcross" || question.type === "keycross" ? { ...(result.crosswordFill || {}) }
     : result.answer;
   showCheckedQuestion(question, result);
 }
@@ -1828,6 +1878,7 @@ function editQuiz(id) {
     else if (question.type === "anagram") $(".fill-correct", card).value = question.answer;
     else if (question.type === "wordsearch") $(".wordsearch-words", card).value = (question.words || []).join("\n");
     else if (question.type === "crossword" || question.type === "quizcross") renderEditor(card, question.clues);
+    else if (question.type === "keycross") { renderEditor(card, question.clues); const keyInput = $(".keycross-key", card); if (keyInput) keyInput.value = question.key || ""; }
     else $(".fill-correct", card).value = question.answer;
   });
   updateCreatorMode();
@@ -1837,7 +1888,7 @@ function editQuiz(id) {
 function addQuestion(type = "choice") {
   questionCounter++;
   const card = document.createElement("article"); card.className = "question-card"; card.dataset.type = type; card.dataset.uid = questionCounter; card.imageData = "";
-  card.innerHTML = `<div class="question-card-header"><span class="question-number">Pytanie <b></b></span><button type="button" class="remove-question" aria-label="Usuń pytanie">Usuń</button></div><div class="type-switch"><button type="button" class="type-option ${type === "choice" ? "active" : ""}" data-type="choice">Test wyboru</button><button type="button" class="type-option ${type === "fill" ? "active" : ""}" data-type="fill">Uzupełnij zdanie</button><button type="button" class="type-option ${type === "order" ? "active" : ""}" data-type="order">Uporządkuj</button><button type="button" class="type-option ${type === "match" ? "active" : ""}" data-type="match">Dopasuj</button><button type="button" class="type-option ${type === "flashcard" ? "active" : ""}" data-type="flashcard">Fiszka</button><button type="button" class="type-option ${type === "correct" ? "active" : ""}" data-type="correct">Popraw błąd</button><button type="button" class="type-option ${type === "anagram" ? "active" : ""}" data-type="anagram">Anagram</button><button type="button" class="type-option ${type === "wordsearch" ? "active" : ""}" data-type="wordsearch">Wykreślanka</button><button type="button" class="type-option ${type === "crossword" ? "active" : ""}" data-type="crossword">Krzyżówka</button><button type="button" class="type-option ${type === "quizcross" ? "active" : ""}" data-type="quizcross">Krzyżówka z pytaniami</button></div><input class="text-input question-instruction" placeholder="Polecenie nad pytaniem (opcjonalnie), np. Complete the sentence" maxlength="80" /><input class="text-input question-prompt" required placeholder="Wpisz treść pytania…" maxlength="180" /><div class="dynamic-editor"></div>`;
+  card.innerHTML = `<div class="question-card-header"><span class="question-number">Pytanie <b></b></span><button type="button" class="remove-question" aria-label="Usuń pytanie">Usuń</button></div><div class="type-switch"><button type="button" class="type-option ${type === "choice" ? "active" : ""}" data-type="choice">Test wyboru</button><button type="button" class="type-option ${type === "fill" ? "active" : ""}" data-type="fill">Uzupełnij zdanie</button><button type="button" class="type-option ${type === "order" ? "active" : ""}" data-type="order">Uporządkuj</button><button type="button" class="type-option ${type === "match" ? "active" : ""}" data-type="match">Dopasuj</button><button type="button" class="type-option ${type === "flashcard" ? "active" : ""}" data-type="flashcard">Fiszka</button><button type="button" class="type-option ${type === "correct" ? "active" : ""}" data-type="correct">Popraw błąd</button><button type="button" class="type-option ${type === "anagram" ? "active" : ""}" data-type="anagram">Anagram</button><button type="button" class="type-option ${type === "wordsearch" ? "active" : ""}" data-type="wordsearch">Wykreślanka</button><button type="button" class="type-option ${type === "crossword" ? "active" : ""}" data-type="crossword">Krzyżówka</button><button type="button" class="type-option ${type === "quizcross" ? "active" : ""}" data-type="quizcross">Krzyżówka z pytaniami</button><button type="button" class="type-option ${type === "keycross" ? "active" : ""}" data-type="keycross">Krzyżówka z hasłem</button></div><input class="text-input question-instruction" placeholder="Polecenie nad pytaniem (opcjonalnie), np. Complete the sentence" maxlength="80" /><input class="text-input question-prompt" required placeholder="Wpisz treść pytania…" maxlength="180" /><div class="dynamic-editor"></div>`;
   $("#questionList").append(card); renderEditor(card); renumberQuestions();
   $(".remove-question", card).addEventListener("click", () => { if ($$(".question-card").length <= 1) return showToast("Test musi mieć co najmniej jedno pytanie"); card.remove(); renumberQuestions(); });
   $$(".type-option", card).forEach(button => button.addEventListener("click", () => switchQuestionType(card, button.dataset.type)));
@@ -1856,7 +1907,7 @@ function switchQuestionType(card, nextType) {
   } else if (currentType === "order") card.orderCache = $(".order-correct", card)?.value || "";
   else if (currentType === "match") card.matchCache = $$(".match-pair-row", card).map(row => ({ left: $(".match-pair-left", row).value, right: $(".match-pair-right", row).value }));
   else if (currentType === "wordsearch") card.wordSearchCache = $(".wordsearch-words", card)?.value || "";
-  else if (currentType === "crossword" || currentType === "quizcross") card.crosswordCache = $$(".crossword-entry-row", card).map(row => ({ answer: $(".crossword-answer", row).value, clue: $(".crossword-clue", row).value }));
+  else if (currentType === "crossword" || currentType === "quizcross" || currentType === "keycross") { card.crosswordCache = $$(".crossword-entry-row", card).map(row => ({ answer: $(".crossword-answer", row).value, clue: $(".crossword-clue", row).value })); if (currentType === "keycross") card.keyCache = $(".keycross-key", card)?.value || ""; }
   else { card.fillCache = $(".fill-correct", card)?.value || ""; if (currentType === "correct") card.wrongCache = $(".correct-wrong", card)?.value || ""; }
 
   const matchFirstPairRight = card.matchCache?.find(pair => pair.right)?.right || "";
@@ -1873,6 +1924,9 @@ function switchQuestionType(card, nextType) {
     $(".wordsearch-words", card).value = card.wordSearchCache || card.orderCache || card.fillCache || "";
   } else if (nextType === "crossword" || nextType === "quizcross") {
     renderEditor(card, card.crosswordCache);
+  } else if (nextType === "keycross") {
+    renderEditor(card, card.crosswordCache);
+    if ($(".keycross-key", card)) $(".keycross-key", card).value = card.keyCache || "";
   } else if (nextType === "order") {
     renderEditor(card);
     $(".order-correct", card).value = card.orderCache || card.fillCache || card.choiceCache?.answers?.[card.choiceCache.correctAnswers[0]] || matchFirstPairLeft || "";
@@ -1890,7 +1944,7 @@ function setAllQuestionTypes(type) {
   const cards = $$(".question-card");
   const convertedFromFill = type === "choice" && cards.some(card => card.dataset.type === "fill" && !card.choiceCache);
   cards.forEach(card => switchQuestionType(card, type));
-  const typeLabel = type === "choice" ? "test wyboru" : type === "fill" ? "uzupełnij zdanie" : type === "match" ? "dopasuj" : type === "flashcard" ? "fiszka" : type === "correct" ? "popraw błąd" : type === "anagram" ? "anagram" : type === "wordsearch" ? "wykreślanka" : type === "crossword" ? "krzyżówka" : type === "quizcross" ? "krzyżówka z pytaniami" : "uporządkuj zdanie";
+  const typeLabel = type === "choice" ? "test wyboru" : type === "fill" ? "uzupełnij zdanie" : type === "match" ? "dopasuj" : type === "flashcard" ? "fiszka" : type === "correct" ? "popraw błąd" : type === "anagram" ? "anagram" : type === "wordsearch" ? "wykreślanka" : type === "crossword" ? "krzyżówka" : type === "quizcross" ? "krzyżówka z pytaniami" : type === "keycross" ? "krzyżówka z hasłem" : "uporządkuj zdanie";
   showToast(convertedFromFill ? "Zmieniono typ. Dopisz błędne odpowiedzi w nowych testach wyboru" : `Wszystkie pytania: ${typeLabel}`);
 }
 
@@ -1968,6 +2022,11 @@ function renderEditor(card, answerValues = null, correctIndexes = [0]) {
       ? "Dodaj co najmniej dwa hasła (odpowiedź + pytanie). Każde hasło pojawi się jako osobny poziomy rząd kratek z pytaniem obok."
       : "Dodaj co najmniej dwa hasła (słowo + wskazówka). Aplikacja ułoży je w krzyżówkę, krzyżując wspólne litery. Hasła, których nie da się skrzyżować, zostaną pominięte.";
     editor.innerHTML = `<p class="fill-editor-note">${note}</p><div class="crossword-entries-editor">${entries.map(entry => crosswordEntryRowHtml(entry)).join("")}</div><button type="button" class="add-crossword-entry">+ Dodaj hasło</button>`;
+    bindCrosswordEntriesEditor(card);
+  }
+  else if (card.dataset.type === "keycross") {
+    const entries = (Array.isArray(answerValues) && answerValues.length ? answerValues : null) || [{ answer: "", clue: "" }, { answer: "", clue: "" }, { answer: "", clue: "" }];
+    editor.innerHTML = `<p class="fill-editor-note">Wpisz hasło, a następnie dla każdej litery hasła jedno słowo, które ją zawiera, wraz z pytaniem. Litery hasła ułożą się w podświetlonej kolumnie. Liczba haseł powinna odpowiadać liczbie liter hasła.</p><input class="text-input keycross-key" required placeholder="Hasło, np. KOT" maxlength="30" /><div class="crossword-entries-editor">${entries.map(entry => crosswordEntryRowHtml(entry)).join("")}</div><button type="button" class="add-crossword-entry">+ Dodaj hasło</button>`;
     bindCrosswordEntriesEditor(card);
   }
   else if (card.dataset.type === "correct") editor.innerHTML = '<p class="fill-editor-note">Treść pytania powyżej to zdanie z jednym błędnym słowem. Podaj to błędne słowo (dokładnie jak w zdaniu) oraz jego poprawną formę. Kilka akceptowanych form oddziel znakiem |.</p><input class="text-input correct-wrong" required placeholder="Błędne słowo, np. go" maxlength="60" /><input class="text-input fill-correct" required placeholder="Poprawna forma, np. goes" maxlength="60" />';
@@ -2106,8 +2165,9 @@ function importCsvQuestions() {
     const wordSearchTokens = ["wordsearch", "wykreslanka", "wykreslanki", "szukaj slow"];
     const crosswordTokens = ["crossword", "krzyzowka", "krzyzowki"];
     const quizCrossTokens = ["quizcross", "krzyzowka z pytaniami", "krzyzowka pytania", "krzyzowka-pytania"];
-    const hasType = fillTokens.includes(typeToken) || choiceTokens.includes(typeToken) || orderTokens.includes(typeToken) || flashcardTokens.includes(typeToken) || matchTokens.includes(typeToken) || correctTypeTokens.includes(typeToken) || anagramTokens.includes(typeToken) || wordSearchTokens.includes(typeToken) || crosswordTokens.includes(typeToken) || quizCrossTokens.includes(typeToken);
-    const type = matchTokens.includes(typeToken) ? "match" : flashcardTokens.includes(typeToken) ? "flashcard" : orderTokens.includes(typeToken) ? "order" : correctTypeTokens.includes(typeToken) ? "correct" : anagramTokens.includes(typeToken) ? "anagram" : wordSearchTokens.includes(typeToken) ? "wordsearch" : quizCrossTokens.includes(typeToken) ? "quizcross" : crosswordTokens.includes(typeToken) ? "crossword" : fillTokens.includes(typeToken) ? "fill" : "choice";
+    const keyCrossTokens = ["keycross", "krzyzowka z haslem", "krzyzowka haslo", "haslo"];
+    const hasType = fillTokens.includes(typeToken) || choiceTokens.includes(typeToken) || orderTokens.includes(typeToken) || flashcardTokens.includes(typeToken) || matchTokens.includes(typeToken) || correctTypeTokens.includes(typeToken) || anagramTokens.includes(typeToken) || wordSearchTokens.includes(typeToken) || crosswordTokens.includes(typeToken) || quizCrossTokens.includes(typeToken) || keyCrossTokens.includes(typeToken);
+    const type = matchTokens.includes(typeToken) ? "match" : flashcardTokens.includes(typeToken) ? "flashcard" : orderTokens.includes(typeToken) ? "order" : correctTypeTokens.includes(typeToken) ? "correct" : anagramTokens.includes(typeToken) ? "anagram" : wordSearchTokens.includes(typeToken) ? "wordsearch" : keyCrossTokens.includes(typeToken) ? "keycross" : quizCrossTokens.includes(typeToken) ? "quizcross" : crosswordTokens.includes(typeToken) ? "crossword" : fillTokens.includes(typeToken) ? "fill" : "choice";
     const content = hasType ? fields.slice(0, -1) : fields;
     const [rawPrompt, ...rest] = content;
     const instructionMatch = /^\[([^\]]+)\]\s*(.+)$/.exec(rawPrompt || "");
@@ -2148,6 +2208,18 @@ function importCsvQuestions() {
       if (type === "crossword" && buildCrossword(clues).entries.length < 2) return null;
       return { type, prompt, clues, instruction };
     }
+    if (type === "keycross") {
+      // First rest field is the KEY word; the remaining fields are answer=clue pairs.
+      const [key, ...pairFields] = rest;
+      const clues = pairFields.map(field => {
+        const [answer, ...clueParts] = field.split("=");
+        const clue = clueParts.join("=").trim();
+        return answer && clue ? { answer: answer.trim(), clue } : null;
+      }).filter(Boolean).filter(entry => crosswordAnswerLetters(entry.answer).length >= 2);
+      if (!prompt || !key || crosswordAnswerLetters(key).length < 2) return null;
+      if (buildKeyCrossword(key.trim(), clues).entries.length !== crosswordAnswerLetters(key).length) return null;
+      return { type, prompt, key: key.trim(), clues, instruction };
+    }
     const [correct, ...incorrect] = rest;
     const correctAnswers = type === "choice" ? correct.split("|").map(answer => answer.trim()).filter(Boolean) : [correct];
     const incorrectAnswers = incorrect.filter(Boolean);
@@ -2175,6 +2247,7 @@ function importCsvQuestions() {
     else if (row.type === "anagram") $(".fill-correct", card).value = row.answer;
     else if (row.type === "wordsearch") $(".wordsearch-words", card).value = row.words.join("\n");
     else if (row.type === "crossword" || row.type === "quizcross") renderEditor(card, row.clues);
+    else if (row.type === "keycross") { renderEditor(card, row.clues); $(".keycross-key", card).value = row.key; }
     else $(".fill-correct", card).value = row.correct;
   });
   renumberQuestions();
@@ -2224,6 +2297,12 @@ function saveCreatedQuiz(event) {
       if (instruction) question.instruction = instruction;
       return question;
     }
+    if (card.dataset.type === "keycross") {
+      const clues = $$(".crossword-entry-row", card).map(row => ({ answer: $(".crossword-answer", row).value.trim(), clue: $(".crossword-clue", row).value.trim() })).filter(entry => entry.answer && entry.clue);
+      const question = { type: "keycross", prompt, key: $(".keycross-key", card).value.trim(), clues };
+      if (instruction) question.instruction = instruction;
+      return question;
+    }
     const rawInputs = $$(".answer-editor-row input[type='text']", card).map((input, i) => ({ value: input.value.trim(), origIdx: i }));
     const filteredInputs = rawInputs.filter(item => item.value);
     const answers = filteredInputs.map(item => item.value);
@@ -2243,6 +2322,8 @@ function saveCreatedQuiz(event) {
   if (questions.some(question => question.type === "crossword" && question.clues.filter(entry => crosswordAnswerLetters(entry.answer).length >= 2 && entry.clue).length < 2)) return showToast("Krzyżówka musi mieć co najmniej dwa hasła (słowo min. 2 litery + wskazówka)");
   if (questions.some(question => question.type === "crossword" && buildCrossword(question.clues).entries.length < 2)) return showToast("Nie udało się ułożyć krzyżówki — hasła muszą mieć wspólne litery, aby się krzyżować");
   if (questions.some(question => question.type === "quizcross" && question.clues.filter(entry => crosswordAnswerLetters(entry.answer).length >= 2 && entry.clue).length < 2)) return showToast("Krzyżówka z pytaniami musi mieć co najmniej dwa hasła (odpowiedź min. 2 litery + pytanie)");
+  if (questions.some(question => question.type === "keycross" && crosswordAnswerLetters(question.key).length < 2)) return showToast("Krzyżówka z hasłem musi mieć hasło z co najmniej dwoma literami");
+  if (questions.some(question => question.type === "keycross" && buildKeyCrossword(question.key, question.clues).entries.length !== crosswordAnswerLetters(question.key).length)) return showToast("Każda litera hasła potrzebuje słowa, które ją zawiera (słowo min. 2 litery + pytanie)");
   const wasEditing = Boolean(editingQuizId);
   const quiz = { id: editingQuizId || `quiz-${Date.now()}`, title: $("#quizTitle").value.trim(), level: $("#quizLevel").value, category: $("#quizCategory").value.trim() || "Angielski", image: creatorImageData, shuffleQuestions: $("#shuffleQuestions").checked, shuffleAnswers: $("#shuffleAnswers").checked, questions };
   if (wasEditing) quizzes = quizzes.map(item => item.id === editingQuizId ? quiz : item);
