@@ -235,6 +235,14 @@
             <span><strong>Czytaj poprawne zdanie</strong><small>Lektorka czyta pełne zdanie z odpowiedzią po każdym pytaniu.</small></span>
             <input id="readAnswerToggle" type="checkbox" checked /><i aria-hidden="true"></i>
           </label>
+          <label class="voice-select-setting">
+            <span>Głos lektora</span>
+            <select id="voiceSelect" class="text-input">
+              <option value="">Automatycznie (głos żeński)</option>
+            </select>
+            <small>Domyślnie wybierany jest głos żeński. Głosy zależą od przeglądarki i systemu.</small>
+            <button id="testVoice" class="button button-ghost" type="button">🔊 Przetestuj głos</button>
+          </label>
         </div>
         <div class="modal-actions">
           <button id="cancelSoundMessages" class="button button-ghost" type="button">Anuluj</button>

@@ -8,6 +8,7 @@ const MUSIC_STORAGE_KEY = "bright-english-music-v1";
 const SR_STORAGE_KEY = "bright-english-sr-v1";
 const QUESTION_TIME_STORAGE_KEY = "bright-english-qtime-v1";
 const READ_ANSWER_STORAGE_KEY = "bright-english-read-answer-v1";
+const VOICE_STORAGE_KEY = "bright-english-voice-v1";
 const DEFAULT_SOUND_MESSAGES = {
   correct: "Correct answer",
   wrong: "Wrong answer",
@@ -150,6 +151,8 @@ let musicChordStep = 0;
 let srData = loadSrData();
 let questionTimeLimit = loadQuestionTimeLimit();
 let readAnswer = loadReadAnswer();
+let preferredVoiceURI = loadPreferredVoiceURI();
+let availableVoices = [];
 let questionTimerInterval = null;
 let questionTimerRemaining = 0;
 let autoAdvanceSeconds = loadAutoAdvanceSeconds();
@@ -229,6 +232,9 @@ function loadQuestionTimeLimit() {
 function saveQuestionTimeLimit() { localStorage.setItem(QUESTION_TIME_STORAGE_KEY, String(questionTimeLimit)); }
 function loadReadAnswer() { return localStorage.getItem(READ_ANSWER_STORAGE_KEY) !== "false"; }
 function saveReadAnswer() { localStorage.setItem(READ_ANSWER_STORAGE_KEY, String(readAnswer)); }
+// "" means auto (prefer a female voice); otherwise the stored SpeechSynthesisVoice.voiceURI.
+function loadPreferredVoiceURI() { return localStorage.getItem(VOICE_STORAGE_KEY) || ""; }
+function savePreferredVoiceURI() { localStorage.setItem(VOICE_STORAGE_KEY, preferredVoiceURI); }
 // escapeHtml lives in lib/pure-logic.js (loaded first).
 
 function renderRandomDailyWord() {
@@ -407,6 +413,19 @@ function saveCreatedCategory(event) {
   showToast(existingCategory ? "Ta kategoria już istnieje" : "Dodano kategorię „" + categoryName + "\u201d");
 }
 
+function renderVoiceOptions() {
+  const select = $("#voiceSelect");
+  if (!select) return;
+  refreshAvailableVoices();
+  const options = ['<option value="">Automatycznie (głos żeński)</option>'];
+  availableVoices.forEach(voice => {
+    const gender = isFemaleVoiceName(voice.name) ? " ♀" : "";
+    options.push(`<option value="${escapeHtml(voice.voiceURI)}">${escapeHtml(voice.name)} — ${escapeHtml(voice.lang)}${gender}</option>`);
+  });
+  select.innerHTML = options.join("");
+  select.value = preferredVoiceURI;
+}
+
 function openSoundMessages() {
   $("#correctSoundText").value = soundMessages.correct;
   $("#wrongSoundText").value = soundMessages.wrong;
@@ -415,6 +434,7 @@ function openSoundMessages() {
   $("#autoAdvanceSeconds").value = autoAdvanceSeconds;
   $("#questionTimeLimit").value = questionTimeLimit;
   $("#readAnswerToggle").checked = readAnswer;
+  renderVoiceOptions();
   $("#soundMessagesModal").hidden = false;
   setTimeout(() => $("#correctSoundText").focus(), 0);
 }
@@ -438,6 +458,8 @@ function saveConfiguredSoundMessages(event) {
   saveQuestionTimeLimit();
   readAnswer = $("#readAnswerToggle").checked;
   saveReadAnswer();
+  preferredVoiceURI = $("#voiceSelect").value;
+  savePreferredVoiceURI();
   closeSoundMessages();
   showToast("Komunikaty dźwiękowe zostały zapisane");
 }
@@ -1192,6 +1214,25 @@ function replayCorrectSentence(correctSentence, onComplete = null) {
   speakMessage(correctSentence, "en-US", .82, onComplete);
 }
 
+function refreshAvailableVoices() {
+  if (!("speechSynthesis" in window)) return;
+  availableVoices = window.speechSynthesis.getVoices();
+}
+
+// Deterministic voice choice: honour the user's saved pick if it's still
+// available; otherwise pick a voice for `language`, preferring a female one
+// (the app default) and falling back to any voice in that language.
+function pickVoice(language) {
+  if (!availableVoices.length) refreshAvailableVoices();
+  if (preferredVoiceURI) {
+    const chosen = availableVoices.find(voice => voice.voiceURI === preferredVoiceURI);
+    if (chosen) return chosen;
+  }
+  const prefix = language.slice(0, 2).toLowerCase();
+  const inLanguage = availableVoices.filter(voice => voice.lang.toLowerCase().startsWith(prefix));
+  return inLanguage.find(voice => isFemaleVoiceName(voice.name)) || inLanguage[0] || null;
+}
+
 function speakMessage(text, fallbackLanguage = "en-US", rate = .9, onEnd = null) {
   if (!text || !("speechSynthesis" in window) || !("SpeechSynthesisUtterance" in window)) return;
   const isPolish = /[ąćęłńóśźż]/i.test(text) || /\b(?:brawo|spróbuj|jeszcze|świetnie|dobrze)\b/i.test(text);
@@ -1202,7 +1243,7 @@ function speakMessage(text, fallbackLanguage = "en-US", rate = .9, onEnd = null)
   message.pitch = 1;
   message.volume = 1;
   if (onEnd) { message.onend = onEnd; message.onerror = onEnd; }
-  const voice = window.speechSynthesis.getVoices().find(item => item.lang.toLowerCase().startsWith(language.slice(0, 2).toLowerCase()));
+  const voice = pickVoice(language);
   if (voice) message.voice = voice;
   window.speechSynthesis.speak(message);
 }
@@ -1913,6 +1954,23 @@ $("#musicToggle").addEventListener("click", () => {
 $("#cancelSoundMessages").addEventListener("click", closeSoundMessages);
 $("#soundMessagesForm").addEventListener("submit", saveConfiguredSoundMessages);
 $("#soundMessagesModal").addEventListener("click", event => { if (event.target.id === "soundMessagesModal") closeSoundMessages(); });
+$("#testVoice").addEventListener("click", () => {
+  if (!("speechSynthesis" in window)) return showToast("Ta przeglądarka nie obsługuje odtwarzania mowy");
+  window.speechSynthesis.cancel();
+  // Preview the currently selected option without saving it yet.
+  const previous = preferredVoiceURI;
+  preferredVoiceURI = $("#voiceSelect").value;
+  speakMessage("This is a sample sentence.", "en-US", .9);
+  preferredVoiceURI = previous;
+});
+// Voices load asynchronously; refresh the picker when they arrive if the modal is open.
+if ("speechSynthesis" in window) {
+  refreshAvailableVoices();
+  window.speechSynthesis.addEventListener("voiceschanged", () => {
+    refreshAvailableVoices();
+    if (!$("#soundMessagesModal").hidden) renderVoiceOptions();
+  });
+}
 $("#dailyWordsSettings").addEventListener("click", openDailyWordsSettings);
 $("#cancelDailyWords").addEventListener("click", closeDailyWordsSettings);
 $("#restoreDailyWords").addEventListener("click", restoreDefaultDailyWords);
