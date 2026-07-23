@@ -38,19 +38,29 @@ test.describe('Import CSV — wszystkie dozwolone oznaczenia typów', () => {
       'My brother watch TV., watch, watches, popraw błąd',
       'They plays football., plays, play, poprawianie',
       'Anna have three cats., have, has, znajdź błąd',
+      'Ułóż słowo., elephant, anagram',
+      'Ułóż słowo., cat, anagramy',
+      'Znajdź zwierzęta., cat, dog, bird, wordsearch',
+      'Znajdź zwierzęta., cat, dog, wykreślanka',
+      'Rozwiąż krzyżówkę., cat=meows, tiger=striped cat, rabbit=hops here, crossword',
+      'Rozwiąż krzyżówkę., cat=meows, tea=a hot drink, krzyżówka',
+      'Odpowiedz., cat=A pet that meows, dog=A pet that barks, quizcross',
+      'Odpowiedz., cat=meows, fish=swims, krzyżówka z pytaniami',
+      'Odgadnij hasło., KOT, milk=White drink, dog=A pet that barks, cat=A pet that meows, keycross',
+      'Odgadnij hasło., DOM, mydlo=soap, okno=window, komin=chimney, krzyżówka z hasłem',
     ].join('\n');
     await page.locator('#csvInput').fill(csv);
 
     // 4. Wczytaj pytania
     await page.locator('#importCsv').click();
 
-    // Toast: dodano 23 pytania, bez pominięć
-    await expect(page.getByText('Dodano 23 pytań')).toBeVisible();
+    // Toast: dodano 33 pytania, bez pominięć
+    await expect(page.getByText('Dodano 33 pytań')).toBeVisible();
     await expect(page.locator('#toast')).not.toContainText('Pominięto');
 
-    // Dokładnie 23 karty pytań
+    // Dokładnie 33 karty pytań
     const cards = page.locator('#questionList .question-card');
-    await expect(cards).toHaveCount(23);
+    await expect(cards).toHaveCount(33);
 
     // Typy kart w kolejności odpowiadają oznaczeniom (w tym polskie formy z „ł")
     const expectedTypes = [
@@ -60,6 +70,11 @@ test.describe('Import CSV — wszystkie dozwolone oznaczenia typów', () => {
       'match', 'match', 'match',
       'flashcard', 'flashcard', 'flashcard',
       'correct', 'correct', 'correct', 'correct', 'correct',
+      'anagram', 'anagram',
+      'wordsearch', 'wordsearch',
+      'crossword', 'crossword',
+      'quizcross', 'quizcross',
+      'keycross', 'keycross',
     ];
     const actualTypes = await cards.evaluateAll(nodes => nodes.map(n => (n as HTMLElement).dataset.type));
     expect(actualTypes).toEqual(expectedTypes);

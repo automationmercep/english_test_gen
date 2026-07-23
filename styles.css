@@ -125,7 +125,7 @@ nav { display: flex; gap: 30px; height: 100%; }
 .empty-state strong { color: var(--ink); font: 700 22px/1.2 Fraunces, serif; }
 .creator-header { display: flex; gap: 25px; align-items: flex-start; margin-bottom: 45px; }.creator-header h1 { font-size: clamp(42px, 5vw, 61px); }.creator-header p { color: var(--muted); }.back-button, .icon-button { width: 44px; height: 44px; border: 1px solid var(--line); background: var(--card); border-radius: 50%; cursor: pointer; font-size: 20px; flex: 0 0 auto; }
 .creator-layout { display: grid; grid-template-columns: 270px 1fr; gap: 40px; align-items: start; }.creator-sidebar { position: sticky; top: 110px; }.field-label { display: block; font-size: 12px; text-transform: uppercase; letter-spacing: .1em; font-weight: 700; margin: 0 0 8px; }.text-input { width: 100%; border: 1px solid var(--line); border-radius: 12px; padding: 14px 15px; background: var(--card); margin-bottom: 22px; color: var(--ink); outline: none; }.text-input:focus { border-color: var(--green); box-shadow: 0 0 0 3px rgba(40,122,85,.1); }.creator-tip { margin-top: 15px; padding: 17px; border-radius: 14px; background: #e9f1e8; display: flex; gap: 12px; font-size: 13px; color: #4e6055; }.creator-tip p { margin: 0; line-height: 1.5; }.creator-tip span { color: var(--green); }
-.question-card { background: var(--card); border: 1px solid var(--line); border-radius: 18px; padding: 24px; margin-bottom: 18px; box-shadow: 0 6px 20px rgba(34,51,42,.035); }.question-card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }.question-number { font-weight: 700; font-family: Fraunces, serif; font-size: 21px; }.remove-question { border: 0; background: transparent; cursor: pointer; color: #a06055; }.type-switch { display: flex; gap: 8px; margin-bottom: 18px; }.type-option { border: 1px solid var(--line); background: transparent; border-radius: 999px; padding: 8px 12px; font-size: 12px; font-weight: 700; cursor: pointer; }.type-option.active { background: var(--ink); color: white; border-color: var(--ink); }.question-prompt { margin-bottom: 15px; }.question-instruction { margin-bottom: 10px; font-size: 12px; padding: 10px 14px; background: rgba(255,253,248,.6); }.answers-editor { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }.answer-editor-row { display: flex; align-items: center; gap: 9px; border: 1px solid var(--line); border-radius: 11px; padding: 4px 11px; }.answer-editor-row input[type="radio"] { accent-color: var(--green); }.answer-editor-row input[type="text"] { width: 100%; border: 0; background: transparent; padding: 9px 0; outline: none; }.fill-editor-note { color: var(--muted); font-size: 13px; margin: -4px 0 12px; }.add-question { width: 100%; padding: 19px; border: 1px dashed #9fa9a2; background: transparent; border-radius: 15px; color: var(--green); font-weight: 700; cursor: pointer; }.creator-actions { display: flex; justify-content: flex-end; gap: 12px; margin-top: 28px; }
+.question-card { background: var(--card); border: 1px solid var(--line); border-radius: 18px; padding: 24px; margin-bottom: 18px; box-shadow: 0 6px 20px rgba(34,51,42,.035); }.question-card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }.question-number { font-weight: 700; font-family: Fraunces, serif; font-size: 21px; }.remove-question { border: 0; background: transparent; cursor: pointer; color: #a06055; }.type-switch { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 18px; }.type-option { border: 1px solid var(--line); background: transparent; border-radius: 999px; padding: 8px 12px; font-size: 12px; font-weight: 700; cursor: pointer; }.type-option.active { background: var(--ink); color: white; border-color: var(--ink); }.question-prompt { margin-bottom: 15px; }.question-instruction { margin-bottom: 10px; font-size: 12px; padding: 10px 14px; background: rgba(255,253,248,.6); }.answers-editor { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }.answer-editor-row { display: flex; align-items: center; gap: 9px; border: 1px solid var(--line); border-radius: 11px; padding: 4px 11px; }.answer-editor-row input[type="radio"] { accent-color: var(--green); }.answer-editor-row input[type="text"] { width: 100%; border: 0; background: transparent; padding: 9px 0; outline: none; }.fill-editor-note { color: var(--muted); font-size: 13px; margin: -4px 0 12px; }.add-question { width: 100%; padding: 19px; border: 1px dashed #9fa9a2; background: transparent; border-radius: 15px; color: var(--green); font-weight: 700; cursor: pointer; }.creator-actions { display: flex; justify-content: flex-end; gap: 12px; margin-top: 28px; }
 .choice-correct-summary { display: flex; align-items: center; gap: 7px; margin: -3px 0 12px; padding: 10px 12px; border-radius: 11px; background: #edf3eb; color: var(--green); font-size: 12px; font-weight: 700; }
 .choice-correct-summary strong { min-width: 27px; height: 27px; display: grid; place-items: center; border-radius: 50%; background: var(--green); color: white; font-size: 14px; }
 .choice-correct-summary span { margin-left: auto; color: var(--muted); font-size: 10px; font-weight: 500; }
@@ -220,6 +220,65 @@ nav { display: flex; gap: 30px; height: 100%; }
 .match-tile-badge { position: absolute; top: -10px; right: -10px; width: 24px; height: 24px; border-radius: 50%; display: grid; place-items: center; font-size: 14px; font-weight: 700; color: #fff; box-shadow: 0 2px 6px rgba(0,0,0,.25); }
 .match-slot.correct .match-tile-badge { background: var(--green); }
 .match-slot.wrong .match-tile-badge { background: #dc6b5e; }
+.letter-tile { min-width: 44px; text-align: center; text-transform: uppercase; font-size: 20px; letter-spacing: 1px; }
+.anagram-builder .order-sentence { letter-spacing: 2px; }
+.wordsearch-builder { grid-column: 1 / -1; display: grid; gap: 18px; justify-items: center; }
+.wordsearch-builder.correct { outline: 2px solid var(--green); outline-offset: 8px; border-radius: 16px; }
+.wordsearch-builder.wrong { outline: 2px solid #dc6b5e; outline-offset: 8px; border-radius: 16px; }
+.ws-grid { display: grid; gap: 4px; max-width: 520px; width: 100%; }
+.ws-cell { aspect-ratio: 1; display: grid; place-items: center; border: 1px solid #cdd7cd; border-radius: 8px; background: var(--card); color: var(--ink); font-weight: 700; font-size: clamp(13px, 3.4vw, 20px); text-transform: uppercase; cursor: pointer; transition: .12s; }
+.ws-cell:hover:not(:disabled) { border-color: var(--green); background: #e5f1e7; }
+.ws-cell.anchor { border-color: var(--green); background: #cfeacc; outline: 2px solid var(--green); }
+.ws-cell.found { background: #dcf0df; border-color: var(--green); color: var(--green); }
+.wordsearch-builder.disabled .ws-cell { cursor: default; }
+.ws-words { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; justify-content: center; gap: 8px 16px; }
+.ws-words li { font-weight: 700; text-transform: uppercase; letter-spacing: .5px; color: var(--ink); }
+.ws-words li.found { color: var(--green); text-decoration: line-through; opacity: .7; }
+.wordsearch-words { resize: vertical; min-height: 90px; font-family: inherit; }
+/* Shared letter-cell input (interlocking crossword + quiz-crossword) */
+.cw-input { width: 100%; height: 100%; border: 1px solid #b8c5ba; border-radius: 6px; background: var(--card); color: var(--ink); text-align: center; text-transform: uppercase; font-weight: 700; font-size: clamp(14px, 3.2vw, 20px); padding: 0; outline: none; }
+.cw-input:focus { border-color: var(--green); box-shadow: 0 0 0 2px rgba(40,122,85,.25); }
+.cw-cell.correct .cw-input { border-color: var(--green); background: #dcf0df; color: var(--green); }
+.cw-cell.wrong .cw-input { border-color: #dc6b5e; background: #ffe5e0; color: #b54d43; }
+/* Classic interlocking crossword */
+.crossword-builder { grid-column: 1 / -1; display: grid; gap: 20px; justify-items: center; }
+.cw-grid { display: grid; gap: 2px; max-width: 100%; }
+.cw-grid .cw-cell { position: relative; aspect-ratio: 1; min-width: 42px; display: grid; place-items: center; }
+.cw-grid .cw-cell.cw-blank { background: transparent; }
+.cw-grid-number { position: absolute; top: 2px; left: 4px; font-size: 13px; font-weight: 700; color: var(--muted); pointer-events: none; z-index: 1; }
+.crossword-builder.disabled .cw-input { cursor: default; }
+.cw-clues { display: flex; flex-wrap: wrap; gap: 32px; justify-content: center; text-align: left; }
+.cw-clue-group h4 { margin: 0 0 8px; font-size: 19px; }
+.cw-clue-group ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 7px; font-size: 18px; line-height: 1.4; max-width: 360px; }
+.cw-clue-group li b { color: var(--green); margin-right: 5px; }
+/* Quiz-crossword: one numbered question row per answer, no interlocking */
+.quizcross-builder { grid-column: 1 / -1; display: grid; gap: 14px; }
+.cw-row { display: flex; align-items: center; gap: 18px; flex-wrap: wrap; }
+.cw-clue { flex: 1 1 200px; min-width: 160px; font-size: 20px; line-height: 1.4; }
+.cw-clue .cw-number { font-weight: 700; color: var(--green); margin-right: 6px; }
+.cw-cells { display: inline-flex; gap: 5px; }
+.cw-row .cw-cell { width: 46px; height: 46px; }
+.cw-row .cw-input { font-size: 24px; }
+.quizcross-builder.disabled .cw-input { cursor: default; }
+/* Key-crossword: aligned rows, the key letter sits in one highlighted column */
+.keycross-builder { grid-column: 1 / -1; display: grid; gap: 10px; }
+.keycross-hint { color: var(--muted); font-size: 14px; margin: 0 0 4px; }
+.keycross-row { display: flex; align-items: center; gap: 18px; flex-wrap: wrap; }
+.keycross-cells { display: grid; gap: 4px; }
+.keycross-cells .cw-cell { width: 42px; height: 42px; position: relative; }
+.keycross-cells .cw-cell.cw-blank { border: 0; background: transparent; }
+.keycross-cells .cw-keycell .cw-input { background: #fdf2c4; border-color: var(--green); }
+.keycross-cells .cw-keycell.correct .cw-input { background: #dcf0df; }
+.keycross-cells .cw-grid-number { position: absolute; top: 2px; left: 4px; font-size: 12px; font-weight: 700; color: var(--muted); pointer-events: none; z-index: 1; }
+.keycross-builder .cw-clue { flex: 1 1 200px; min-width: 160px; font-size: 20px; line-height: 1.4; }
+.keycross-builder .cw-clue .cw-number { font-weight: 700; color: var(--green); margin-right: 6px; }
+.keycross-builder.disabled .cw-input { cursor: default; }
+.keycross-key { text-transform: uppercase; letter-spacing: 2px; font-weight: 700; margin-bottom: 12px; }
+.crossword-entries-editor { display: grid; gap: 10px; margin-bottom: 14px; }
+.crossword-entry-row { display: grid; grid-template-columns: minmax(80px, 1fr) minmax(120px, 2fr) auto; gap: 8px; align-items: center; }
+.crossword-entry-row input { border: 1px solid var(--line); border-radius: 11px; padding: 9px 11px; background: transparent; color: var(--ink); }
+.remove-crossword-entry { border: 0; background: transparent; cursor: pointer; color: #a06055; font-size: 18px; }
+.add-crossword-entry { border: 1px dashed #9fa9a2; background: transparent; border-radius: 11px; padding: 9px 14px; color: var(--green); font-weight: 700; cursor: pointer; }
 .match-pairs-editor { display: grid; gap: 10px; margin-bottom: 14px; }
 .match-pair-row { display: grid; grid-template-columns: 1fr auto 1fr auto; align-items: center; gap: 9px; }
 .match-pair-row input { border: 1px solid var(--line); border-radius: 11px; padding: 10px 12px; background: var(--card); outline: none; font-size: 13px; }

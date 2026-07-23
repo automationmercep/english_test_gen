@@ -18,11 +18,11 @@ Gramatyka/temat: [np. Present Simple]
 Poziom: [np. A2]
 Słowa do użycia: [np. listen, walk, study, watch, karate, pottery, football]
 Formy do rozłożenia równo: twierdzenia, pytania (Do/Does/Is/Are), przeczenia (don't/doesn't/isn't)
-Typy pytań i ile każdego: [np. 8x correct, 6x fill, 6x choice — dostępne typy: correct, fill, choice, order, match, flashcard]
+Typy pytań i ile każdego: [np. 8x correct, 6x fill, 6x choice — dostępne typy: correct, fill, choice, order, match, flashcard, anagram, wordsearch, crossword, quizcross, keycross]
 
 === ZASADY OGÓLNE ===
 1. Jeden wiersz = jedno pytanie. Bez nagłówka, bez numeracji, bez markdown, bez komentarzy.
-2. Ostatnie pole każdego wiersza to token typu (po angielsku): correct / fill / choice / order / match / flashcard.
+2. Ostatnie pole każdego wiersza to token typu (po angielsku): correct / fill / choice / order / match / flashcard / anagram / wordsearch / crossword / quizcross / keycross.
 3. Pola oddzielaj przecinkami. Jeśli w treści pytania jest przecinek, otocz całe pole cudzysłowem: "zdanie, z przecinkiem".
 4. Słowa z listy są TEMATEM zdań (czynność/podmiot), NIGDY nie są opcjami do wyboru.
 5. Każde słowo z listy wykorzystaj co najmniej raz. Możesz je odmieniać gramatycznie (walk → walks).
@@ -63,6 +63,31 @@ match — łączenie par (lewa=prawa), minimum dwie pary.
 flashcard — odwracana karta: awers (słowo/pytanie) i rewers (tłumaczenie/odpowiedź).
   Format: awers, rewers, flashcard
   Przykład: football,piłka nożna,flashcard
+
+anagram — jedno słowo do ułożenia z pomieszanych liter (min. 2 litery, spacje ignorowane).
+  Format: polecenie, słowo, anagram
+  Przykład: Ułóż nazwę zwierzęcia.,elephant,anagram
+
+wordsearch — wykreślanka: lista słów ukrytych w siatce liter. Podaj słowa (każde min. 2 litery).
+  Format: polecenie, słowo1, słowo2, słowo3, …, wordsearch
+  Przykład: Znajdź zwierzęta.,cat,dog,bird,fish,wordsearch
+
+crossword — krzyżówka splatająca hasła na wspólnych literach (min. 2 hasła). Każde hasło jako słowo=wskazówka.
+  KRYTYCZNE: hasła muszą mieć wspólne litery, by dało się je skrzyżować — inaczej aplikacja pomija hasło.
+  Dobierz słowa dzielące litery (np. cat/tiger/rabbit dzielą "t"/"a"/"r").
+  Format: polecenie, słowo1=wskazówka1, słowo2=wskazówka2, słowo3=wskazówka3, crossword
+  Przykład: Rozwiąż krzyżówkę.,cat=A pet that meows,tiger=Big striped cat,rabbit=Hops and has long ears,crossword
+
+quizcross — krzyżówka z pytaniami: każde hasło to osobny rząd kratek z pytaniem obok (BEZ splatania).
+  Odpowiedzi NIE muszą mieć wspólnych liter. Zapis taki sam jak crossword: odpowiedź=pytanie.
+  Format: polecenie, odpowiedź1=pytanie1, odpowiedź2=pytanie2, …, quizcross
+  Przykład: Odpowiedz na pytania.,cat=A pet that meows,dog=A pet that barks,fish=Lives in water,quizcross
+
+keycross — krzyżówka z hasłem: hasło czytane w pionie z podświetlonej kolumny.
+  PIERWSZE pole po poleceniu to HASŁO; potem po jednym słowie na każdą literę hasła (słowo=pytanie).
+  KRYTYCZNE: i-te słowo musi zawierać i-tą literę hasła, i mieć min. 2 litery. Kolejność słów = kolejność liter hasła.
+  Format: polecenie, HASŁO, słowo1=pytanie1, słowo2=pytanie2, …, keycross
+  Przykład (hasło KOT → K,O,T): Odgadnij hasło.,KOT,milk=White drink,dog=A pet that barks,cat=A pet that meows,keycross
 
 === JEDNOZNACZNOŚĆ (sprawdź KAŻDE pytanie!) ===
 Aplikacja zalicza tylko JEDNĄ poprawną odpowiedź / jedno poprawne słowo. Zanim
