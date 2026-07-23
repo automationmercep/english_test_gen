@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What this is
 
-"Bright English" (Polish UI) — a single-page, no-build web app for creating and taking English-learning quizzes. No framework, no bundler: `index.html` + `app.js` (vanilla JS, ~2100 lines) + `styles.css`. All app UI strings are in Polish.
+"Bright English" (Polish UI) — a single-page, no-build web app for creating and taking English-learning quizzes. No framework, no bundler: `index.html` + `app.js` (vanilla JS, ~2100 lines) + `styles.css`, plus `lib/pure-logic.js` (side-effect-free logic shared by the app and the unit tests). All app UI strings are in Polish.
 
 ## Repo and deployment
 
@@ -19,11 +19,27 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ```powershell
 python -m http.server 8000
 ```
-Then open `http://localhost:8000`. There's no build step — edit `app.js`/`styles.css`/`index.html` and reload.
+Then open `http://localhost:8000`. There's no build step — edit `app.js`/`styles.css`/`index.html`/`lib/pure-logic.js` and reload.
 
 For Playwright tests specifically, `.codex-server.cjs` (a small static file server, port 8000) is started automatically by `playwright.config.ts`'s `webServer` — no need to run it manually.
 
 ## Testing
+
+There are two independent test layers: **unit tests** (Node, pure logic) and **Playwright E2E tests** (real browser, full UI).
+
+### Unit tests
+
+Pure functions live in `lib/pure-logic.js` (answer matching, error-correction sentence building, verb conjugation, CSV parsing/quoting, Polish pluralization, HTML escaping, etc.) precisely so they can be tested in isolation. `app.js` can't be `require()`d from Node — it runs DOM/`localStorage` code at load time — so these functions are extracted into `lib/pure-logic.js`, which is loaded as a classic `<script>` **before** `app.js` in `index.html` (functions become globals `app.js` calls unchanged) and dual-exported via a `typeof module !== "undefined"` guard for Node. Keep `lib/pure-logic.js` free of DOM, `localStorage`, timers, and app-level state. To add a testable function, move it there (delete the duplicate from `app.js`, leaving a one-line pointer comment) and add it to the `module.exports` block.
+
+Tests use the built-in `node:test` runner (zero new dependencies), live in `tests/unit/*.test.js`, and run via:
+
+```bash
+npm run test:unit                                    # node --test "tests/unit/*.test.js"
+```
+
+Note: `node --test tests/unit/` (a bare directory) fails on the installed Node — the glob form the npm script uses is required.
+
+### Playwright E2E tests
 
 Playwright tests live in `tests/*.spec.ts`, each backed by a human-readable scenario doc in `specs/*.md` (steps + expected outcomes). These are two independent files — editing a `specs/*.md` scenario does **not** regenerate or change its `tests/*.spec.ts` file; that has to be done manually or via the `playwright-test-generator` agent (see below).
 
@@ -42,6 +58,12 @@ npx playwright test tests/edit-quiz.spec.ts:7         # single test by line
 ## Architecture
 
 Everything runs client-side; there is no backend other than optional Firebase sync.
+
+### Code layout
+
+- `app.js` — the bulk of the app: state, persistence, rendering, event wiring, question generators, and gameplay. Loaded as a classic deferred `<script>`.
+- `lib/pure-logic.js` — side-effect-free helpers extracted from `app.js` so they're unit-testable in Node (see Testing). Loaded (also deferred) **before** `app.js`; both share the global scope, so `app.js` references these functions directly.
+- `firebase.js` — the only ES module (`<script type="module">`), kept separate because it's the optional cloud-sync layer.
 
 ### State and persistence
 
