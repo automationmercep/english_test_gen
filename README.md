@@ -308,6 +308,19 @@ Jeśli w treści potrzebny jest sam znak cudzysłowu, należy zapisać go podwó
 - nieprawidłowe wiersze są pomijane i uwzględniane w komunikacie podsumowującym import,
 - po imporcie każde pytanie można nadal ręcznie edytować.
 
+## Generowanie pytań przez AI
+
+Pytania w formacie CSV można wygenerować dowolnym modelem AI (ChatGPT, Claude, Gemini) i wkleić prosto do importu. W pliku [docs/prompt-generator-pytan.md](docs/prompt-generator-pytan.md) znajduje się gotowy prompt — wystarczy wypełnić pola (temat gramatyczny, poziom, lista słów, liczba i typy pytań) i wkleić do AI.
+
+Prompt wymusza reguły, które najczęściej myli AI:
+
+- pytania `fill` muszą zawierać lukę `___`,
+- opcje w `choice` to formy gramatyczne, a nie losowe słownictwo (dokładnie 4 opcje),
+- w `correct` błędne słowo musi występować dosłownie w zdaniu (inaczej aplikacja pomija wiersz),
+- podane słownictwo jest tematem zdań, nie opcjami do wyboru.
+
+Zawsze przejrzyj wynik przed importem — aplikacja pomija nieprawidłowe wiersze i podsumowuje, ile pominęła, a każde pytanie można potem ręcznie edytować.
+
 ## Import listy słówek dnia
 
 Lista słówek dnia korzysta z prostszego, dwukolumnowego formatu:
