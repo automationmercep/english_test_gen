@@ -42,6 +42,27 @@ test.describe('Responsywność na telefonie i tablecie', () => {
     await expect(page.locator('#homeView')).toHaveClass(/active/);
   });
 
+  test('Telefon: panel wyboru motywu mieści się na ekranie', async ({ page }) => {
+    await page.setViewportSize(PHONE);
+    await page.goto('/');
+
+    // Otwórz panel motywu (na mobile topbar się zawija, więc panel nie może
+    // rozwijać się poza lewą krawędź — regresja wykryta na urządzeniu mobilnym).
+    await page.locator('#themeToggle').click();
+    const panel = page.locator('#themePanel');
+    await expect(panel).toBeVisible();
+    const box = await panel.boundingBox();
+    expect(box).not.toBeNull();
+    expect(box!.x, 'lewa krawędź panelu motywu musi być na ekranie').toBeGreaterThanOrEqual(0);
+    expect(box!.x + box!.width, 'prawa krawędź panelu motywu musi mieścić się na ekranie').toBeLessThanOrEqual(PHONE.width + 1);
+
+    // Swatch koloru jest widoczny i klikalny (nie ukryty poza ekranem).
+    const swatch = page.locator('.theme-swatch[data-theme="ocean"]');
+    await expect(swatch).toBeVisible();
+    await swatch.click();
+    await expect(page.locator('body')).toHaveClass(/theme-ocean/);
+  });
+
   test('Tablet: brak poziomego scrolla i modal ustawień mieści się na ekranie', async ({ page }) => {
     await page.setViewportSize(TABLET);
     await page.goto('/');
