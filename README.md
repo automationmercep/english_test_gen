@@ -21,6 +21,10 @@ Następnie przejdź do `http://localhost:8000`.
 - typ pytania „Uporządkuj zdanie” — układanie pomieszanych kafelków słów klikaniem lub przeciąganiem,
 - typ **Fiszka** — odwracana karta z samooceną „Wiedziałem / Nie wiedziałem", dostępna w kreatorze, w imporcie CSV (`fiszka`) i w zmianie zbiorczej,
 - typ **Popraw błąd** — zdanie z jednym błędnym słowem; uczący się klika błędne słowo i wpisuje jego poprawną formę (dopuszczalnych form może być kilka, oddzielonych `|`), dostępny w kreatorze, w imporcie CSV (`correct`) i w zmianie zbiorczej,
+- typ **Anagram** — jedno słowo, którego litery trzeba ułożyć w poprawnej kolejności klikaniem lub przeciąganiem kafelków (spacje ignorowane), dostępny w kreatorze i imporcie CSV (`anagram`),
+- typ **Wykreślanka** — kwadratowa siatka liter z ukrytymi słowami (poziomo, pionowo i na ukos, także wspak); uczący się zaznacza każde słowo, klikając jego pierwszą i ostatnią literę, dostępny w kreatorze i imporcie CSV (`wordsearch`),
+- typ **Krzyżówka** — hasła splatające się na wspólnych literach w jednej siatce, z ponumerowanymi wskazówkami poziomo/pionowo; uczący się wpisuje litery w kratki, dostępny w kreatorze i imporcie CSV (`crossword`),
+- typ **Krzyżówka z pytaniami** — każde hasło to osobny ponumerowany poziomy rząd kratek z pytaniem obok (bez splatania); uczący się wpisuje odpowiedzi literami, dostępny w kreatorze i imporcie CSV (`quizcross`),
 - opcjonalne polecenie wyświetlane nad treścią pytania (np. „Complete the sentence”), ustawiane w kreatorze lub przez import CSV.
 
 ### Kreator i edycja testów
@@ -35,7 +39,7 @@ Następnie przejdź do `http://localhost:8000`.
 
 ### Import z CSV
 
-- import wielu pytań z wklejonej struktury CSV, z typem pytania (`choice`, `fill`, `order`, `fiszka`, `match`, `correct`) w ostatnim polu importowanego wiersza (szczegóły w sekcji [Import pytań z CSV](#import-pytań-z-csv)).
+- import wielu pytań z wklejonej struktury CSV, z typem pytania (`choice`, `fill`, `order`, `fiszka`, `match`, `correct`, `anagram`, `wordsearch`, `crossword`, `quizcross`) w ostatnim polu importowanego wiersza (szczegóły w sekcji [Import pytań z CSV](#import-pytań-z-csv)).
 
 ### Kategorie i organizacja
 
@@ -206,6 +210,80 @@ He don't like coffee., don't, doesn't, correct
 
 Błędne słowo (drugie pole) musi występować w treści zdania — w przeciwnym razie wiersz jest pomijany przy imporcie. Poprawną formę można podać w kilku akceptowanych wariantach oddzielonych `|`, np. `goes|does go`. Importer przyjmuje jako typ: `correct`, `popraw` lub `popraw blad`.
 
+### Anagram
+
+Pytanie typu „Anagram" to jedno słowo, którego litery uczący się układa w poprawnej kolejności (klikając lub przeciągając kafelki). Spacje w odpowiedzi są ignorowane, wielkość liter nie ma znaczenia.
+
+Układ pól:
+
+```text
+polecenie, słowo do ułożenia, anagram
+```
+
+Przykład:
+
+```csv
+Ułóż nazwę zwierzęcia., elephant, anagram
+Ułóż słowo., rainbow, anagram
+```
+
+Pierwsze pole to polecenie widoczne nad pytaniem, drugie to poprawne słowo (co najmniej dwie litery). Importer przyjmuje jako typ: `anagram` lub `anagramy`.
+
+### Wykreślanka
+
+Pytanie typu „Wykreślanka" ukrywa listę słów w kwadratowej siatce liter (poziomo, pionowo lub na ukos; słowo można też odczytać wspak). Uczący się zaznacza każde słowo, klikając jego pierwszą i ostatnią literę.
+
+Układ pól:
+
+```text
+polecenie, słowo 1, słowo 2, słowo 3, …, wordsearch
+```
+
+Przykład:
+
+```csv
+Znajdź zwierzęta., cat, dog, bird, fish, wordsearch
+Find the colours., red, blue, green, wordsearch
+```
+
+Pierwsze pole to polecenie, kolejne to słowa do ukrycia (każde co najmniej dwie litery). Aplikacja generuje siatkę i wypełnia puste pola losowymi literami. Importer przyjmuje jako typ: `wordsearch`, `wykreslanka` lub `szukaj slow`.
+
+### Krzyżówka
+
+Pytanie typu „Krzyżówka" splata hasła na wspólnych literach w jednej siatce. Każde hasło zapisuje się jako `słowo=wskazówka`, a haseł musi być co najmniej dwa. Aplikacja układa je w krzyżówkę i numeruje wskazówki poziomo/pionowo; uczący się wpisuje litery w kratki.
+
+Układ pól:
+
+```text
+polecenie, słowo 1=wskazówka 1, słowo 2=wskazówka 2, słowo 3=wskazówka 3, crossword
+```
+
+Przykład:
+
+```csv
+Rozwiąż krzyżówkę., cat=A pet that meows, tiger=Big striped cat, rabbit=Hops and has long ears, crossword
+```
+
+Hasła muszą mieć wspólne litery, żeby dało się je skrzyżować — hasło, którego nie da się połączyć z żadnym innym, jest pomijane. Importer przyjmuje jako typ: `crossword`, `krzyzowka` lub `krzyzowki`.
+
+### Krzyżówka z pytaniami
+
+Pytanie typu „Krzyżówka z pytaniami" to odmiana krzyżówki bez splatania: każde hasło pojawia się jako osobny ponumerowany poziomy rząd kratek, a wskazówka jest widocznym pytaniem obok. Uczący się wpisuje odpowiedzi literami. Format zapisu jest taki sam jak w krzyżówce (`odpowiedź=pytanie`).
+
+Układ pól:
+
+```text
+polecenie, odpowiedź 1=pytanie 1, odpowiedź 2=pytanie 2, odpowiedź 3=pytanie 3, quizcross
+```
+
+Przykład:
+
+```csv
+Odpowiedz na pytania., cat=A pet that meows, dog=A pet that barks, fish=Lives in water, quizcross
+```
+
+W odróżnieniu od zwykłej krzyżówki odpowiedzi nie muszą mieć wspólnych liter — każda trafia do własnego rzędu. Importer przyjmuje jako typ: `quizcross` lub `krzyzowka z pytaniami`.
+
 ### Mieszanie różnych typów pytań
 
 W jednym imporcie można łączyć wszystkie typy pytań — jednokrotny i wielokrotny wybór, uzupełnianie zdań, układanie, dopasowywanie, fiszki i poprawianie błędu:
@@ -227,7 +305,11 @@ Typ każdego pytania określa ostatnie pole:
 - `order` — układanie zdania z kafelków,
 - `match` — dopasowywanie par,
 - `fiszka` — odwracana fiszka,
-- `correct` — poprawianie błędnego słowa w zdaniu.
+- `correct` — poprawianie błędnego słowa w zdaniu,
+- `anagram` — układanie słowa z liter,
+- `wordsearch` — wykreślanka,
+- `crossword` — krzyżówka ze splatającymi się hasłami,
+- `quizcross` — krzyżówka z pytaniami (rząd na hasło).
 
 Oznaczenie typu jest odporne na wielkość liter i polskie znaki diakrytyczne (`uzupełnij` = `uzupelnij`). Każdy typ ma kilka dozwolonych form:
 
@@ -239,8 +321,12 @@ Oznaczenie typu jest odporne na wielkość liter i polskie znaki diakrytyczne (`
 | Dopasuj | `match`, `dopasuj`, `dopasowanie` |
 | Fiszka | `flashcard`, `fiszka`, `fiszki` |
 | Popraw błąd | `correct`, `popraw`, `popraw blad`, `poprawianie`, `znajdz blad` |
+| Anagram | `anagram`, `anagramy` |
+| Wykreślanka | `wordsearch`, `wykreslanka`, `wykreslanki`, `szukaj slow` |
+| Krzyżówka | `crossword`, `krzyzowka`, `krzyzowki` |
+| Krzyżówka z pytaniami | `quizcross`, `krzyzowka z pytaniami` |
 
-Najbardziej jednoznaczne są angielskie oznaczenia `choice`, `fill`, `order`, `match`, `fiszka` i `correct`.
+Najbardziej jednoznaczne są angielskie oznaczenia `choice`, `fill`, `order`, `match`, `fiszka`, `correct`, `anagram`, `wordsearch`, `crossword` i `quizcross`.
 
 Przykład wykorzystujący wszystkie dozwolone formy (po jednym wierszu na każdą):
 
@@ -268,6 +354,14 @@ He don't like coffee., don't, doesn't, popraw
 My brother watch TV., watch, watches, popraw błąd
 They plays football., plays, play, poprawianie
 Anna have three cats., have, has, znajdź błąd
+Ułóż słowo., elephant, anagram
+Ułóż słowo., rainbow, anagramy
+Znajdź zwierzęta., cat, dog, bird, wordsearch
+Znajdź kolory., red, blue, green, wykreślanka
+Rozwiąż krzyżówkę., cat=meows, tiger=striped cat, rabbit=hops here, crossword
+Rozwiąż krzyżówkę., cat=meows, tea=a hot drink, krzyżówka
+Odpowiedz na pytania., cat=A pet that meows, dog=A pet that barks, quizcross
+Odpowiedz na pytania., cat=meows, fish=swims, krzyżówka z pytaniami
 ```
 
 ### Polecenie nad pytaniem (opcjonalnie)
@@ -317,6 +411,7 @@ Prompt wymusza reguły, które najczęściej myli AI:
 - pytania `fill` muszą zawierać lukę `___`,
 - opcje w `choice` to formy gramatyczne, a nie losowe słownictwo (dokładnie 4 opcje),
 - w `correct` błędne słowo musi występować dosłownie w zdaniu (inaczej aplikacja pomija wiersz),
+- w `crossword` hasła muszą mieć wspólne litery, żeby dało się je skrzyżować (w `quizcross` nie jest to wymagane),
 - podane słownictwo jest tematem zdań, nie opcjami do wyboru.
 
 Zawsze przejrzyj wynik przed importem — aplikacja pomija nieprawidłowe wiersze i podsumowuje, ile pominęła, a każde pytanie można potem ręcznie edytować.
