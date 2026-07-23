@@ -64,6 +64,27 @@ flashcard — odwracana karta: awers (słowo/pytanie) i rewers (tłumaczenie/odp
   Format: awers, rewers, flashcard
   Przykład: football,piłka nożna,flashcard
 
+=== JEDNOZNACZNOŚĆ (sprawdź KAŻDE pytanie!) ===
+Aplikacja zalicza tylko JEDNĄ poprawną odpowiedź / jedno poprawne słowo. Zanim
+zapiszesz pytanie, sprawdź, czy nie istnieje DRUGA odpowiedź poprawna gramatycznie.
+Jeśli istnieje — przerób pytanie tak, by poprawna była tylko jedna.
+
+- choice: żaden z 3 dystraktorów nie może tworzyć poprawnego zdania. Uwaga na CZAS:
+  określenia typu "every day / every Saturday / every evening" pasują i do Present
+  Simple, i do Past Simple — więc forma przeszła (studied, did) jako dystraktor jest
+  RÓWNIEŻ poprawna. Nie używaj form przeszłych jako dystraktorów przy zdaniach o
+  rutynie. Trzymaj wszystkie dystraktory w tym samym czasie co poprawna odpowiedź.
+  ŹLE:  My friends ___ English every evening.,study,studies,studying,studied,choice   (studied też poprawne)
+  DOBRZE: My friends ___ English every evening.,study,studies,studying,are,choice
+
+- correct: błąd musi mieć TYLKO JEDNO sensowne miejsce naprawy. Uwaga na zgodę
+  podmiot–orzeczenie: "My dictionary are..." można naprawić i przez are→is, i przez
+  dictionary→dictionaries. Aby uniknąć dwuznaczności, użyj podmiotu, którego liczby
+  nie da się zmienić w danym kontekście (np. jednoznacznie mnogi: "These books",
+  "your parents"), tak by jedyną poprawką było słowo, które zaplanowałeś.
+  ŹLE:  Is your friends always noisy?,Is,Are,correct   (można też friends→friend)
+  DOBRZE: Are your parents always noisy? -> zapisz jako: Is your parents always noisy?,Is,Are,correct
+
 === WYNIK ===
 Zwróć WYŁĄCZNIE surowe wiersze CSV, każdy w osobnej linii, gotowe do skopiowania.
 Nie dodawaj żadnego tekstu przed ani po.
@@ -77,6 +98,7 @@ wierszach, najczęściej:
 - **`fill` bez luki** — zdanie kompletne, brak `___` (aplikacja pokaże pełne zdanie i puste pole).
 - **`choice` z losowymi słowami** zamiast form gramatycznych, albo z liczbą opcji inną niż 4.
 - **`correct` z błędnym słowem, którego nie ma dosłownie w zdaniu** — taki wiersz aplikacja pomija przy imporcie.
+- **dwuznaczność** — druga opcja w `choice` też poprawna, albo błąd w `correct` da się naprawić na dwa sposoby (patrz sekcja „JEDNOZNACZNOŚĆ"). Aplikacja zaliczy tylko jedną odpowiedź, więc druga poprawna = uczeń dostaje „źle" mimo dobrej gramatyki.
 
 Aplikacja i tak pomija nieprawidłowe wiersze i podsumowuje, ile pominęła, ale
 najlepiej poprawić je od razu. Po imporcie każde pytanie można też ręcznie edytować.
