@@ -7,6 +7,7 @@ const {
   escapeHtml,
   capitalize,
   testCountLabel,
+  questionCountLabel,
   getCorrectIndexes,
 } = require("../../lib/pure-logic.js");
 
@@ -43,6 +44,27 @@ test("testCountLabel returns 'testów' for 0, 5-21, and the teens", () => {
   assert.equal(testCountLabel(13), "testów");
   assert.equal(testCountLabel(14), "testów");
   assert.equal(testCountLabel(25), "testów");
+});
+
+test("questionCountLabel handles the Polish singular", () => {
+  assert.equal(questionCountLabel(1), "pytanie");
+});
+
+test("questionCountLabel returns 'pytania' for 2-4 (but not the teens)", () => {
+  assert.equal(questionCountLabel(2), "pytania");
+  assert.equal(questionCountLabel(3), "pytania");
+  assert.equal(questionCountLabel(4), "pytania");
+  assert.equal(questionCountLabel(22), "pytania");
+  assert.equal(questionCountLabel(24), "pytania");
+});
+
+test("questionCountLabel returns 'pytań' for 0, 5-21, and the teens", () => {
+  assert.equal(questionCountLabel(0), "pytań");
+  assert.equal(questionCountLabel(5), "pytań");
+  assert.equal(questionCountLabel(12), "pytań");
+  assert.equal(questionCountLabel(13), "pytań");
+  assert.equal(questionCountLabel(14), "pytań");
+  assert.equal(questionCountLabel(25), "pytań");
 });
 
 test("getCorrectIndexes reads a single `correct` index", () => {

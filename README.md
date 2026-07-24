@@ -32,7 +32,7 @@ Następnie przejdź do `http://localhost:8000`.
 
 - kreator własnych testów,
 - edycja własnych testów po ich utworzeniu, w tym edycja i usuwanie testów wbudowanych,
-- zbiorcza zmiana typu wszystkich pytań w kreatorze,
+- zbiorcza zmiana typu wszystkich pytań w kreatorze — przyciski pogrupowane w rodziny (Tekstowe / Krzyżówki / Inne); zmiana w obrębie rodziny zachowuje treść odpowiedzi, a zmiana między rodzinami, która usunęłaby treść, wymaga potwierdzenia (treść pytań zawsze pozostaje),
 - osobne ustawienia losowania kolejności pytań i odpowiedzi,
 - obrazek wyświetlany pod przyciskiem odpowiedzi, dodawany z pliku lub adresu URL; większe obrazki wyświetlane w pełnych proporcjach bez przycinania,
 - gotowy 24-pytaniowy test `Grammar Power Pack` z konstrukcjami `to be`, `have/has got` i `can`,

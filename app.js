@@ -1952,8 +1952,28 @@ function switchQuestionType(card, nextType) {
   }
 }
 
+// True when a card holds non-empty type-specific content in its editor — i.e.
+// the player-facing answer data, not just the prompt (which survives any switch).
+function cardHasAnswerContent(card) {
+  const nonEmpty = selector => $$(selector, card).some(input => input.value.trim() !== "");
+  switch (card.dataset.type) {
+    case "choice": return nonEmpty(".answer-editor-row input[type='text']");
+    case "match": return nonEmpty(".match-pair-left, .match-pair-right");
+    case "wordsearch": return nonEmpty(".wordsearch-words");
+    case "crossword": case "quizcross": case "keycross": return nonEmpty(".crossword-answer, .crossword-clue, .keycross-key");
+    default: return nonEmpty(".fill-correct, .order-correct, .correct-wrong");
+  }
+}
+
 function setAllQuestionTypes(type) {
   const cards = $$(".question-card");
+  // Warn when the switch crosses a data-shape family AND the card actually has
+  // content that would be dropped — an empty card loses nothing (see
+  // isLossyTypeConversion / questionTypeFamily in lib/pure-logic.js).
+  const lossyCount = cards.filter(card => isLossyTypeConversion(card.dataset.type, type) && cardHasAnswerContent(card)).length;
+  if (lossyCount > 0) {
+    if (!confirm(`Ta zmiana usunie treść odpowiedzi z ${lossyCount} ${questionCountLabel(lossyCount)} (inny rodzaj danych). Treść pytań pozostanie. Kontynuować?`)) return;
+  }
   const convertedFromFill = type === "choice" && cards.some(card => card.dataset.type === "fill" && !card.choiceCache);
   cards.forEach(card => switchQuestionType(card, type));
   const typeLabel = type === "choice" ? "test wyboru" : type === "fill" ? "uzupełnij zdanie" : type === "match" ? "dopasuj" : type === "flashcard" ? "fiszka" : type === "correct" ? "popraw błąd" : type === "anagram" ? "anagram" : type === "wordsearch" ? "wykreślanka" : type === "crossword" ? "krzyżówka" : type === "quizcross" ? "krzyżówka z pytaniami" : type === "keycross" ? "krzyżówka z hasłem" : "uporządkuj zdanie";
