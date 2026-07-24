@@ -39,7 +39,7 @@ test.describe('Eksport, import i scalanie danych', () => {
     expect(data).toHaveProperty('categories');
   });
 
-  test('Import danych z pliku JSON zastępuje istniejące testy', async ({ page }) => {
+  test('Import danych z pliku JSON zastępuje istniejące testy', async ({ page }, testInfo) => {
     await page.goto('/');
 
     // 1. Utwórz nowy, unikalnie nazwany test „Import Test A” przez kreator.
@@ -65,9 +65,11 @@ test.describe('Eksport, import i scalanie danych', () => {
       page.waitForEvent('download'),
       page.getByRole('button', { name: 'Eksportuj dane' }).click(),
     ]);
-    // Ścieżka pobranego pliku posłuży za wejście do importu; osobno czytamy
-    // jego treść, by potwierdzić, że reprezentuje stan A.
-    const stateAPath = await downloadA.path();
+    // Zapisz pobrany plik lokalnie (saveAs działa też w trybie remote, gdzie
+    // download.path() jest niedostępne); ta ścieżka posłuży za wejście do
+    // importu. Osobno czytamy treść, by potwierdzić, że reprezentuje stan A.
+    const stateAPath = testInfo.outputPath('state-a.json');
+    await downloadA.saveAs(stateAPath);
     const streamA = await downloadA.createReadStream();
     streamA.setEncoding('utf-8');
     let stateAText = '';
@@ -97,7 +99,7 @@ test.describe('Eksport, import i scalanie danych', () => {
     await expect(page.getByRole('button', { name: 'Rozpocznij test Import Test A' })).not.toBeVisible();
   });
 
-  test('Dodaj testy (scalanie) importuje tylko nowe quizy bez usuwania istniejących', async ({ page }) => {
+  test('Dodaj testy (scalanie) importuje tylko nowe quizy bez usuwania istniejących', async ({ page }, testInfo) => {
     await page.goto('/');
 
     // 1. Zanotuj listę aktualnych testów w bibliotece (np. 4 testy startowe).
@@ -128,7 +130,8 @@ test.describe('Eksport, import i scalanie danych', () => {
       page.waitForEvent('download'),
       page.getByRole('button', { name: 'Eksportuj dane' }).click(),
     ]);
-    const stateBPath = await downloadB.path();
+    const stateBPath = testInfo.outputPath('state-b.json');
+    await downloadB.saveAs(stateBPath);
     const streamB = await downloadB.createReadStream();
     streamB.setEncoding('utf-8');
     let stateBText = '';
