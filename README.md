@@ -19,6 +19,7 @@ Następnie przejdź do `http://localhost:8000`.
 - testy jednokrotnego wyboru i uzupełnianie zdań,
 - pytania wielokrotnego wyboru z dowolną liczbą poprawnych odpowiedzi, także w imporcie CSV przez separator `|`,
 - typ pytania „Uporządkuj zdanie” — układanie pomieszanych kafelków słów klikaniem lub przeciąganiem,
+- typ **Uzupełnij luki** — wklejasz dowolny tekst i otaczasz słowa do ukrycia nawiasami `[słowo]`; uczący się wpisuje brakujące słowa w luki osadzone w tekście (luki dopasowane rozmiarem do słów), dostępny w kreatorze i imporcie CSV (`cloze`),
 - typ **Fiszka** — odwracana karta z samooceną „Wiedziałem / Nie wiedziałem", dostępna w kreatorze, w imporcie CSV (`fiszka`) i w zmianie zbiorczej,
 - typ **Popraw błąd** — zdanie z jednym błędnym słowem; uczący się klika błędne słowo i wpisuje jego poprawną formę (dopuszczalnych form może być kilka, oddzielonych `|`), dostępny w kreatorze, w imporcie CSV (`correct`) i w zmianie zbiorczej,
 - typ **Anagram** — jedno słowo, którego litery trzeba ułożyć w poprawnej kolejności klikaniem lub przeciąganiem kafelków (spacje ignorowane), dostępny w kreatorze i imporcie CSV (`anagram`),
@@ -40,7 +41,7 @@ Następnie przejdź do `http://localhost:8000`.
 
 ### Import z CSV
 
-- import wielu pytań z wklejonej struktury CSV, z typem pytania (`choice`, `fill`, `order`, `fiszka`, `match`, `correct`, `anagram`, `wordsearch`, `crossword`, `quizcross`, `keycross`) w ostatnim polu importowanego wiersza (szczegóły w sekcji [Import pytań z CSV](#import-pytań-z-csv)).
+- import wielu pytań z wklejonej struktury CSV, z typem pytania (`choice`, `fill`, `order`, `fiszka`, `match`, `correct`, `anagram`, `wordsearch`, `crossword`, `quizcross`, `keycross`, `cloze`) w ostatnim polu importowanego wiersza (szczegóły w sekcji [Import pytań z CSV](#import-pytań-z-csv)).
 
 ### Kategorie i organizacja
 

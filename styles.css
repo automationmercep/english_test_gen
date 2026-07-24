@@ -281,6 +281,15 @@ nav { display: flex; gap: 30px; height: 100%; }
 .keycross-builder .cw-clue .cw-number { font-weight: 700; color: var(--green); margin-right: 6px; }
 .keycross-builder.disabled .cw-input { cursor: default; }
 .keycross-key { text-transform: uppercase; letter-spacing: 2px; font-weight: 700; margin-bottom: 12px; }
+/* Cloze (gap-fill): text flows with inline inputs sized to each answer */
+.cloze-builder { grid-column: 1 / -1; font-size: clamp(18px, 2.6vw, 24px); line-height: 2.1; text-align: left; max-width: 720px; margin: 0 auto; }
+.cloze-text { white-space: pre-wrap; }
+.cloze-gap { display: inline-block; border: 0; border-bottom: 2px solid #99a59d; background: transparent; color: var(--ink); text-align: center; font: inherit; padding: 0 4px; margin: 0 2px; outline: none; vertical-align: baseline; }
+.cloze-gap:focus { border-color: var(--green); box-shadow: 0 2px 0 0 var(--green); }
+.cloze-gap.correct { color: var(--green); border-color: var(--green); background: #dcf0df; border-radius: 6px 6px 0 0; }
+.cloze-gap.wrong { color: #b54d43; border-color: #dc6b5e; background: #ffe5e0; border-radius: 6px 6px 0 0; }
+.cloze-builder.disabled .cloze-gap { cursor: default; }
+.cloze-text-input, textarea.cloze-text { resize: vertical; min-height: 110px; font-family: inherit; line-height: 1.6; }
 .crossword-entries-editor { display: grid; gap: 10px; margin-bottom: 14px; }
 .crossword-entry-row { display: grid; grid-template-columns: minmax(80px, 1fr) minmax(120px, 2fr) auto; gap: 8px; align-items: center; }
 .crossword-entry-row input { border: 1px solid var(--line); border-radius: 11px; padding: 9px 11px; background: transparent; color: var(--ink); }

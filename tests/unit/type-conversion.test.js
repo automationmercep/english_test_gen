@@ -34,7 +34,7 @@ test("questionTypeFamily falls back to text for unknown / missing types", () => 
 
 test("QUESTION_TYPE_FAMILIES covers every supported question type exactly once", () => {
   const allTypes = ["choice", "fill", "order", "flashcard", "anagram", "correct",
-    "crossword", "quizcross", "keycross", "match", "wordsearch"];
+    "crossword", "quizcross", "keycross", "match", "wordsearch", "cloze"];
   assert.deepEqual(Object.keys(QUESTION_TYPE_FAMILIES).sort(), [...allTypes].sort());
 });
 
