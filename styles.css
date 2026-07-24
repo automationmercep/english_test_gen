@@ -268,7 +268,7 @@ nav { display: flex; gap: 30px; height: 100%; }
 .keycross-cells .cw-cell { width: 42px; height: 42px; position: relative; }
 .keycross-cells .cw-cell.cw-blank { border: 0; background: transparent; }
 .keycross-cells .cw-keycell .cw-input { background: #fdf2c4; border-color: var(--green); }
-.keycross-cells .cw-keycell.correct .cw-input { background: #dcf0df; }
+.keycross-cells .cw-keycell.correct .cw-input { background: var(--yellow); border-color: var(--green); color: var(--ink); }
 .keycross-cells .cw-grid-number { position: absolute; top: 2px; left: 4px; font-size: 12px; font-weight: 700; color: var(--muted); pointer-events: none; z-index: 1; }
 .keycross-builder .cw-clue { flex: 1 1 200px; min-width: 160px; font-size: 20px; line-height: 1.4; }
 .keycross-builder .cw-clue .cw-number { font-weight: 700; color: var(--green); margin-right: 6px; }
