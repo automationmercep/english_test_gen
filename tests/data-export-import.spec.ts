@@ -163,4 +163,33 @@ test.describe('Eksport, import i scalanie danych', () => {
     await expect(mergeTestBCard).not.toBeVisible();
     await expect(allTab).toHaveAttribute('aria-label', `Wszystkie, testów: ${initialCount}`);
   });
+
+  test('Import nieprawidłowego pliku JSON jest bezpiecznie obsłużony (alert, biblioteka bez zmian)', async ({ page }) => {
+    await page.goto('/');
+
+    const allTab = page.getByRole('tab', { name: 'Wszystkie, testów:' });
+    const beforeLabel = await allTab.getAttribute('aria-label');
+    const beforeCount = Number(beforeLabel?.match(/(\d+)/)?.[1]);
+    expect(beforeCount).toBeGreaterThan(0);
+
+    // Podaj plik z niepoprawną zawartością JSON — aplikacja pokazuje alert (po
+    // asynchronicznym odczycie FileReader) i nie czyści danych. Poczekaj na dialog.
+    await page.getByRole('button', { name: 'Dane' }).click();
+    const dialogPromise = page.waitForEvent('dialog');
+    // Zbuduj uszkodzony plik w przeglądarce (bez zależności od typów Node/Buffer)
+    // i ustaw go na ukrytym file inpucie przez DataTransfer.
+    await page.locator('#importDataFile').evaluate((input: HTMLInputElement) => {
+      const file = new File(['to nie jest poprawny JSON {{{'], 'uszkodzony.json', { type: 'application/json' });
+      const dt = new DataTransfer();
+      dt.items.add(file);
+      input.files = dt.files;
+      input.dispatchEvent(new Event('change', { bubbles: true }));
+    });
+
+    const dialog = await dialogPromise;
+    expect(dialog.message()).toContain('nie udało się wczytać pliku');
+    await dialog.accept();
+    // Biblioteka pozostaje nietknięta (ta sama liczba testów, brak reloadu do pustego stanu).
+    await expect(allTab).toHaveAttribute('aria-label', `Wszystkie, testów: ${beforeCount}`);
+  });
 });

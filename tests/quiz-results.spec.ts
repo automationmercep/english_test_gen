@@ -127,4 +127,19 @@ test.describe('Ekran wyników i powtórki', () => {
     await expect(page.locator('#playView')).toHaveClass(/active/);
     await expect(page.locator('#progressText')).toHaveText(`1 / ${total}`);
   });
+
+  test('Karta testu dostaje odznakę „trudne” po podejściu z błędną odpowiedzią', async ({ page }) => {
+    await openEverydayEnglish(page);
+    await playQuiz(page, 1); // jedno pytanie błędne => jedno "trudne" (wrong > correct)
+
+    await expect(page.locator('#resultsView')).toHaveClass(/active/);
+    await page.getByRole('button', { name: 'Wróć do testów →' }).click();
+    await expect(page.locator('#homeView')).toHaveClass(/active/);
+
+    // Karta "Everyday English" pokazuje odznakę spaced-repetition "⚡ N trudne".
+    const card = page.locator('.quiz-card', { hasText: 'Everyday English' });
+    const badge = card.locator('.sr-hard-tag');
+    await expect(badge).toBeVisible();
+    await expect(badge).toHaveText(/⚡\s*1\s*trudne/);
+  });
 });
