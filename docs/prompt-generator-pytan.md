@@ -18,11 +18,11 @@ Gramatyka/temat: [np. Present Simple]
 Poziom: [np. A2]
 Słowa do użycia: [np. listen, walk, study, watch, karate, pottery, football]
 Formy do rozłożenia równo: twierdzenia, pytania (Do/Does/Is/Are), przeczenia (don't/doesn't/isn't)
-Typy pytań i ile każdego: [np. 8x correct, 6x fill, 6x choice — dostępne typy: correct, fill, choice, order, match, flashcard, anagram, wordsearch, crossword, quizcross, keycross]
+Typy pytań i ile każdego: [np. 8x correct, 6x fill, 6x choice — dostępne typy: correct, fill, choice, cloze, order, match, flashcard, anagram, wordsearch, crossword, quizcross, keycross]
 
 === ZASADY OGÓLNE ===
 1. Jeden wiersz = jedno pytanie. Bez nagłówka, bez numeracji, bez markdown, bez komentarzy.
-2. Ostatnie pole każdego wiersza to token typu (po angielsku): correct / fill / choice / order / match / flashcard / anagram / wordsearch / crossword / quizcross / keycross.
+2. Ostatnie pole każdego wiersza to token typu (po angielsku): correct / fill / choice / cloze / order / match / flashcard / anagram / wordsearch / crossword / quizcross / keycross.
 3. Pola oddzielaj przecinkami. Jeśli w treści pytania jest przecinek, otocz całe pole cudzysłowem: "zdanie, z przecinkiem".
 4. Słowa z listy są TEMATEM zdań (czynność/podmiot), NIGDY nie są opcjami do wyboru.
 5. Każde słowo z listy wykorzystaj co najmniej raz. Możesz je odmieniać gramatycznie (walk → walks).
@@ -38,6 +38,17 @@ fill — zdanie z LUKĄ oznaczoną trzema podkreśleniami "___" w miejscu brakuj
   Format: zdanie z ___ , poprawna_odpowiedź, fill
   KRYTYCZNE: zdanie MUSI zawierać "___". Odpowiedź to słowo pasujące w lukę.
   Przykład: We don't ___ to music in the library.,listen,fill
+
+cloze — dłuższy tekst z KILKOMA lukami. Słowa do ukrycia otocz nawiasami [słowo].
+  Każdy fragment [...] staje się luką; uczeń wpisuje brakujące słowa w tekście.
+  Format: polecenie, tekst z [lukami], cloze
+  KRYTYCZNE: cały tekst z lukami to JEDNO pole — jeśli zawiera przecinki (a zwykle
+  zawiera), otocz to pole cudzysłowem. Użyj 2–5 luk w spójnym, powiązanym tekście.
+  KRYTYCZNE: każda luka musi być JEDNOZNACZNIE odgadywalna z kontekstu (kolokacja,
+  definicja lub gramatyka) — NIE ukrywaj słów zależnych od gustu/opinii.
+  ŹLE:  "My favourite subject is [Music]."   (ulubiony przedmiot to opinia — nie da się odgadnąć)
+  DOBRZE: "In [Music] we sing and play instruments."   (definicja wskazuje odpowiedź)
+  Przykład: Uzupełnij tekst.,"I [go] to school every day. At school I [study] English. After class my friends [play] football.",cloze
 
 choice — pytanie z DOKŁADNIE 4 opcjami (1 poprawna + 3 błędne). Opcje to RÓŻNE FORMY
   GRAMATYCZNE lub sensowne odpowiedzi, NIGDY losowe słownictwo. Wszystkie 4 opcje muszą być
@@ -121,6 +132,7 @@ Zawsze przejrzyj wynik przed importem — AI potrafi się pomylić w pojedynczyc
 wierszach, najczęściej:
 
 - **`fill` bez luki** — zdanie kompletne, brak `___` (aplikacja pokaże pełne zdanie i puste pole).
+- **`cloze` bez nawiasów** — tekst bez żadnego `[słowo]` (aplikacja pominie wiersz), albo luka nieodgadywalna z kontekstu (opinia/gust) — uczeń nie ma jak trafić. Sprawdź też, czy pole z tekstem jest w cudzysłowach, jeśli ma przecinki.
 - **`choice` z losowymi słowami** zamiast form gramatycznych, albo z liczbą opcji inną niż 4.
 - **`correct` z błędnym słowem, którego nie ma dosłownie w zdaniu** — taki wiersz aplikacja pomija przy imporcie.
 - **dwuznaczność** — druga opcja w `choice` też poprawna, albo błąd w `correct` da się naprawić na dwa sposoby (patrz sekcja „JEDNOZNACZNOŚĆ"). Aplikacja zaliczy tylko jedną odpowiedź, więc druga poprawna = uczeń dostaje „źle" mimo dobrej gramatyki.
