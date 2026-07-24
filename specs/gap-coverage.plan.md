@@ -1,5 +1,16 @@
 # Bright English — plan testów E2E (luki w pokryciu)
 
+> **Stan realizacji:** wszystkie scenariusze z tego planu zostały pokryte testami
+> (`tests/data-export-import.spec.ts`, `tests/quiz-results.spec.ts`,
+> `tests/quiz-navigation.spec.ts`, `tests/create-quiz-validation.spec.ts`,
+> `tests/sound-settings.spec.ts`, `tests/theme-switch.spec.ts`,
+> `tests/daily-word.spec.ts`, `tests/verb-generator.spec.ts`,
+> `tests/crossword-reveal-letter.spec.ts`). Kilka scenariuszy udokumentowało
+> RZECZYWISTE zachowanie odmienne od pierwotnego założenia planu: stan dźwięku
+> nie jest utrwalany (2.1), licznik czasu po upływie tylko znika i nie oznacza
+> odpowiedzi jako błędnej (2.5), a odkryta litera krzyżówki pozostaje edytowalna
+> — nie jest blokowana (7.2). Plan pozostaje tu jako dokumentacja zakresu.
+
 ## Application Overview
 
 Bright English to jednostronicowa aplikacja webowa (PWA, UI w języku polskim) do tworzenia i rozwiązywania testów językowych z angielskiego. Aplikacja obsługuje wiele typów pytań (wybór, uzupełnianie, porządkowanie, dopasowywanie, fiszki, poprawianie błędów, anagramy, wykreślanki, krzyżówki), import/eksport CSV i całych danych, kategorie testów, motywy kolorystyczne, ustawienia dźwięku/muzyki/komunikatów głosowych, słówko dnia, generator odmiany czasowników oraz mechanizm spaced-repetition (powtórka błędnych pytań). Cały stan aplikacji trzymany jest w localStorage; opcjonalna synchronizacja w chmurze odbywa się przez Firebase/Google Sign-In.
