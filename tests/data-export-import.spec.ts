@@ -28,9 +28,10 @@ test.describe('Eksport, import i scalanie danych', () => {
 
     // expect: Plik zawiera pola version, exported, quizzes (z co najmniej domyślnymi testami) oraz categories.
     const stream = await download.createReadStream();
-    const chunks: Buffer[] = [];
-    for await (const chunk of stream) chunks.push(chunk as Buffer);
-    const data = JSON.parse(Buffer.concat(chunks).toString('utf-8'));
+    stream.setEncoding('utf-8');
+    let text = '';
+    for await (const chunk of stream) text += chunk;
+    const data = JSON.parse(text);
     expect(data).toHaveProperty('version');
     expect(data).toHaveProperty('exported');
     expect(Array.isArray(data.quizzes)).toBe(true);
@@ -64,13 +65,16 @@ test.describe('Eksport, import i scalanie danych', () => {
       page.waitForEvent('download'),
       page.getByRole('button', { name: 'Eksportuj dane' }).click(),
     ]);
+    // Ścieżka pobranego pliku posłuży za wejście do importu; osobno czytamy
+    // jego treść, by potwierdzić, że reprezentuje stan A.
+    const stateAPath = await downloadA.path();
     const streamA = await downloadA.createReadStream();
-    const chunksA: Buffer[] = [];
-    for await (const chunk of streamA) chunksA.push(chunk as Buffer);
-    const stateABuffer = Buffer.concat(chunksA);
+    streamA.setEncoding('utf-8');
+    let stateAText = '';
+    for await (const chunk of streamA) stateAText += chunk;
 
     // expect: Pobrano plik JSON reprezentujący stan A.
-    expect(stateABuffer.toString('utf-8')).toContain('Import Test A');
+    expect(stateAText).toContain('Import Test A');
 
     // 3. Usuń test „Import Test A” z biblioteki.
     page.once('dialog', dialog => dialog.accept());
@@ -82,11 +86,7 @@ test.describe('Eksport, import i scalanie danych', () => {
     // 4. Otwórz panel „Dane”, kliknij „Importuj dane” i wybierz plik zapisany w kroku 2 (stan A).
     await page.getByRole('button', { name: 'Dane' }).click();
     page.once('dialog', dialog => dialog.accept());
-    await page.locator('#importDataFile').setInputFiles({
-      name: 'bright-english-backup-state-a.json',
-      mimeType: 'application/json',
-      buffer: stateABuffer,
-    });
+    await page.locator('#importDataFile').setInputFiles(stateAPath);
 
     // expect: Po imporcie biblioteka zawiera ponownie test „Import Test A”.
     await expect(page.getByRole('button', { name: 'Rozpocznij test Import Test A' })).toBeVisible();
@@ -128,13 +128,14 @@ test.describe('Eksport, import i scalanie danych', () => {
       page.waitForEvent('download'),
       page.getByRole('button', { name: 'Eksportuj dane' }).click(),
     ]);
+    const stateBPath = await downloadB.path();
     const streamB = await downloadB.createReadStream();
-    const chunksB: Buffer[] = [];
-    for await (const chunk of streamB) chunksB.push(chunk as Buffer);
-    const stateBBuffer = Buffer.concat(chunksB);
+    streamB.setEncoding('utf-8');
+    let stateBText = '';
+    for await (const chunk of streamB) stateBText += chunk;
 
     // expect: Plik JSON zawiera „Merge Test B”.
-    expect(stateBBuffer.toString('utf-8')).toContain('Merge Test B');
+    expect(stateBText).toContain('Merge Test B');
 
     page.once('dialog', dialog => dialog.accept());
     await mergeTestBCard.getByLabel('Usuń test').click();
@@ -145,11 +146,7 @@ test.describe('Eksport, import i scalanie danych', () => {
 
     // 3. Otwórz panel „Dane”, kliknij „Dodaj testy” i wybierz plik z „Merge Test B”.
     await page.getByRole('button', { name: 'Dane' }).click();
-    await page.locator('#mergeQuizzesFile').setInputFiles({
-      name: 'bright-english-backup-state-b.json',
-      mimeType: 'application/json',
-      buffer: stateBBuffer,
-    });
+    await page.locator('#mergeQuizzesFile').setInputFiles(stateBPath);
 
     // expect: Test „Merge Test B” zostaje dodany do biblioteki, a wszystkie testy, które były obecne przed
     // scaleniem, pozostają niezmienione (brak duplikatów, brak utraty danych).
