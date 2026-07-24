@@ -240,6 +240,9 @@ nav { display: flex; gap: 30px; height: 100%; }
 .cw-input:focus { border-color: var(--green); box-shadow: 0 0 0 2px rgba(40,122,85,.25); }
 .cw-cell.correct .cw-input { border-color: var(--green); background: #dcf0df; color: var(--green); }
 .cw-cell.wrong .cw-input { border-color: #dc6b5e; background: #ffe5e0; color: #b54d43; }
+.cw-reveal { position: absolute; bottom: 1px; right: 1px; width: 15px; height: 15px; border: 0; border-radius: 50%; background: var(--sage); color: var(--green); font-size: 10px; font-weight: 700; line-height: 1; display: grid; place-items: center; cursor: pointer; padding: 0; z-index: 2; opacity: .75; }
+.cw-reveal:hover { opacity: 1; background: var(--green); color: #fff; }
+.cw-reveal:disabled { display: none; }
 /* Classic interlocking crossword */
 .crossword-builder { grid-column: 1 / -1; display: grid; gap: 20px; justify-items: center; }
 .cw-grid { display: grid; gap: 2px; max-width: 100%; }
@@ -257,7 +260,7 @@ nav { display: flex; gap: 30px; height: 100%; }
 .cw-clue { flex: 1 1 200px; min-width: 160px; font-size: 20px; line-height: 1.4; }
 .cw-clue .cw-number { font-weight: 700; color: var(--green); margin-right: 6px; }
 .cw-cells { display: inline-flex; gap: 5px; }
-.cw-row .cw-cell { width: 46px; height: 46px; }
+.cw-row .cw-cell { width: 46px; height: 46px; position: relative; }
 .cw-row .cw-input { font-size: 24px; }
 .quizcross-builder.disabled .cw-input { cursor: default; }
 /* Key-crossword: aligned rows, the key letter sits in one highlighted column */

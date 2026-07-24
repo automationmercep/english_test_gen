@@ -1172,7 +1172,8 @@ function renderQuizCrosswordAnswer(question, disabled = false) {
       const cell = grid[r][c];
       const value = selectedAnswer[`${r},${c}`] || "";
       const stateClass = disabled ? (checkCrosswordCell(value, cell.solution) ? "correct" : "wrong") : "";
-      return `<div class="cw-cell ${stateClass}"><input class="cw-input" data-r="${r}" data-c="${c}" maxlength="1" inputmode="text" aria-label="Hasło ${entry.number}, litera ${c + 1}" value="${escapeHtml(value)}" ${disabled ? "disabled" : ""} /></div>`;
+      const revealHtml = disabled ? "" : `<button type="button" class="cw-reveal" data-r="${r}" data-c="${c}" tabindex="-1" aria-label="Odkryj literę">?</button>`;
+      return `<div class="cw-cell ${stateClass}"><input class="cw-input" data-r="${r}" data-c="${c}" maxlength="1" inputmode="text" aria-label="Hasło ${entry.number}, litera ${c + 1}" value="${escapeHtml(value)}" ${disabled ? "disabled" : ""} />${revealHtml}</div>`;
     }).join("");
     return `<div class="cw-row"><div class="cw-clue"><span class="cw-number">${entry.number}.</span> ${escapeHtml(entry.clue || entry.answer)}</div><div class="cw-cells">${cellsHtml}</div></div>`;
   };
@@ -1194,7 +1195,8 @@ function renderKeyCrosswordAnswer(question, disabled = false) {
       const stateClass = disabled ? (checkCrosswordCell(value, cell.solution) ? "correct" : "wrong") : "";
       const keyClass = cell.key ? "cw-keycell" : "";
       const numberHtml = cell.number ? `<span class="cw-grid-number">${cell.number}</span>` : "";
-      cellsHtml.push(`<div class="cw-cell ${stateClass} ${keyClass}">${numberHtml}<input class="cw-input" data-r="${entry.row}" data-c="${c}" maxlength="1" inputmode="text" aria-label="Hasło ${entry.number}, litera ${c + 1}" value="${escapeHtml(value)}" ${disabled ? "disabled" : ""} /></div>`);
+      const revealHtml = disabled ? "" : `<button type="button" class="cw-reveal" data-r="${entry.row}" data-c="${c}" tabindex="-1" aria-label="Odkryj literę">?</button>`;
+      cellsHtml.push(`<div class="cw-cell ${stateClass} ${keyClass}">${numberHtml}<input class="cw-input" data-r="${entry.row}" data-c="${c}" maxlength="1" inputmode="text" aria-label="Hasło ${entry.number}, litera ${c + 1}" value="${escapeHtml(value)}" ${disabled ? "disabled" : ""} />${revealHtml}</div>`);
     }
     return `<div class="keycross-row"><div class="keycross-cells" style="grid-template-columns: repeat(${cols}, 1fr)">${cellsHtml.join("")}</div><div class="cw-clue"><span class="cw-number">${entry.number}.</span> ${escapeHtml(entry.clue || entry.answer)}</div></div>`;
   }).join("");
@@ -1221,6 +1223,15 @@ function bindCrosswordInputs(question, area) {
     });
     input.addEventListener("focus", () => input.select());
   });
+  $$(".cw-reveal", area).forEach(button => button.addEventListener("click", () => {
+    const { r, c } = button.dataset;
+    const cell = question.crossword.grid[r][c];
+    selectedAnswer[`${r},${c}`] = cell.solution;
+    const input = inputs.find(i => i.dataset.r === r && i.dataset.c === c);
+    if (input) input.value = cell.solution;
+    button.disabled = true;
+    $("#checkAnswer").disabled = Object.keys(selectedAnswer).length !== totalCells;
+  }));
   $("#checkAnswer").disabled = Object.keys(selectedAnswer).length !== totalCells;
 }
 
@@ -1233,7 +1244,8 @@ function renderCrosswordGrid(question, crossword, disabled) {
     const value = selectedAnswer[`${r},${c}`] || "";
     const stateClass = disabled ? (checkCrosswordCell(value, cell.solution) ? "correct" : "wrong") : "";
     const numberHtml = cell.number ? `<span class="cw-grid-number">${cell.number}</span>` : "";
-    return `<div class="cw-cell ${stateClass}">${numberHtml}<input class="cw-input" data-r="${r}" data-c="${c}" maxlength="1" inputmode="text" aria-label="Litera ${r + 1},${c + 1}" value="${escapeHtml(value)}" ${disabled ? "disabled" : ""} /></div>`;
+    const revealHtml = disabled ? "" : `<button type="button" class="cw-reveal" data-r="${r}" data-c="${c}" tabindex="-1" aria-label="Odkryj literę">?</button>`;
+    return `<div class="cw-cell ${stateClass}">${numberHtml}<input class="cw-input" data-r="${r}" data-c="${c}" maxlength="1" inputmode="text" aria-label="Litera ${r + 1},${c + 1}" value="${escapeHtml(value)}" ${disabled ? "disabled" : ""} />${revealHtml}</div>`;
   };
   const gridHtml = grid.map((rowCells, r) => rowCells.map((cell, c) => cellHtml(cell, r, c)).join("")).join("");
   const clueList = dir => entries.filter(entry => entry.dir === dir).map(entry => `<li><b>${entry.number}.</b> ${escapeHtml(entry.clue || entry.answer)}</li>`).join("");
