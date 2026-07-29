@@ -19,12 +19,15 @@ test.describe('Edycja istniejącego testu', () => {
     // expect: the quiz title input has the value "Everyday English"
     const titleInput = page.getByRole('textbox', { name: 'Nazwa testu' });
     await expect(titleInput).toHaveValue('Everyday English');
+    const floatingSave = page.locator('#floatingSaveQuizButton');
+    await expect(floatingSave).toBeVisible();
+    await expect(floatingSave).toContainText('Zapisz zmiany');
 
     // 3. Clear the title input and type "Everyday English (poprawiony)"
     await titleInput.fill('Everyday English (poprawiony)');
 
-    // 4. Click the save button (labeled "Zapisz zmiany →" in edit mode)
-    await page.getByRole('button', { name: 'Zapisz zmiany →' }).click();
+    // 4. Save from the persistent button without scrolling to the form footer.
+    await floatingSave.click();
 
     // expect: the app navigates back to the home view (#homeView has class "active")
     await expect(page.locator('#homeView')).toHaveClass(/active/);

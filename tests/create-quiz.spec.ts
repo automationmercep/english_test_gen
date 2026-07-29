@@ -3,6 +3,33 @@
 import { test, expect } from '@playwright/test';
 
 test.describe('Tworzenie nowego testu', () => {
+  test('Pływający zapis jest dostępny w środku długiego formularza także na telefonie', async ({ page }) => {
+    await page.setViewportSize({ width: 430, height: 932 });
+    await page.goto('/');
+    await page.getByRole('button', { name: /Nowy test/ }).click();
+    await page.getByRole('textbox', { name: 'Nazwa testu' }).fill('Długi test mobilny');
+
+    const csv = Array.from({ length: 15 }, (_, index) =>
+      `Question ${index + 1}, answer${index + 1}, fill`).join('\n');
+    await page.locator('#csvInput').fill(csv);
+    await page.locator('#importCsv').click();
+    await expect(page.getByText('Dodano 15 pytań')).toBeVisible();
+    await expect(page.locator('.question-card')).toHaveCount(15);
+
+    await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight / 2));
+    const floatingSave = page.locator('#floatingSaveQuizButton');
+    await expect(floatingSave).toBeVisible();
+    const box = await floatingSave.boundingBox();
+    expect(box).not.toBeNull();
+    expect(box!.x + box!.width).toBeLessThanOrEqual(431);
+    expect(box!.y + box!.height).toBeLessThanOrEqual(933);
+
+    await floatingSave.click();
+    await expect(page.locator('#homeView')).toHaveClass(/active/);
+    await expect(page.locator('#toast')).toHaveText('Test zapisany — możesz zaczynać!');
+    await expect(page.getByRole('button', { name: /Rozpocznij test Długi test mobilny/ })).toBeVisible();
+  });
+
   test('Dodanie nowego testu z jednym pytaniem wyboru', async ({ page }) => {
     await page.goto('/');
 

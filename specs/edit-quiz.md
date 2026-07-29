@@ -6,10 +6,12 @@
 1. Na stronie głównej odnajdź kartę testu "Everyday English" i kliknij przycisk "✎ Edytuj"
 2. Sprawdź, że otworzył się kreator w trybie edycji z nagłówkiem "Edytuj test" i polem "Nazwa testu" wypełnionym wartością "Everyday English"
 3. Zmień nazwę testu na "Everyday English (poprawiony)"
-4. Kliknij przycisk zapisu ("Zapisz zmiany")
+4. Bez przewijania na koniec formularza kliknij pływający przycisk „Zapisz zmiany”
 
 **Expected:**
 - Wyświetla się widok "Moje testy" (strona główna)
 - Pojawia się komunikat (toast) "Zapisano zmiany w teście"
 - Na liście testów widoczna jest karta z nowym tytułem "Everyday English (poprawiony)"
 - Karta ze starym tytułem "Everyday English" nie jest już widoczna
+- Pływający przycisk zapisu jest dostępny od razu po otwarciu edycji i korzysta
+  z tej samej walidacji co przycisk na końcu formularza.
