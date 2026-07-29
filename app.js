@@ -2001,6 +2001,8 @@ async function searchImages() {
 function updateCreatorMode() {
   $("#createTitle").textContent = editingQuizId ? "Edytuj test" : "Stwórz nowy test";
   $("#saveQuizButton").innerHTML = editingQuizId ? "Zapisz zmiany <span>→</span>" : "Zapisz test <span>→</span>";
+  $("#floatingSaveQuizLabel").textContent = editingQuizId ? "Zapisz zmiany" : "Zapisz test";
+  $("#floatingSaveQuizButton").setAttribute("aria-label", editingQuizId ? "Zapisz zmiany z dowolnego miejsca" : "Zapisz test z dowolnego miejsca");
 }
 
 function beginNewQuiz() {
@@ -2608,6 +2610,12 @@ $("#dailyWordsSettings").addEventListener("click", openDailyWordsSettings);
 $("#mobileMenuToggle").addEventListener("click", event => { event.stopPropagation(); toggleMobileMenu(); });
 $("#mobileMenuClose").addEventListener("click", closeMobileMenu);
 $("#topbarTools").addEventListener("click", event => event.stopPropagation());
+if ("IntersectionObserver" in window) {
+  const floatingSave = $("#floatingSaveQuizButton");
+  new IntersectionObserver(([entry]) => {
+    floatingSave.classList.toggle("near-native-save", entry.isIntersecting);
+  }, { threshold: .5 }).observe($("#saveQuizButton"));
+}
 document.addEventListener("click", closeMobileMenu);
 document.addEventListener("keydown", event => {
   if (handleModalKeydown(event)) return;
