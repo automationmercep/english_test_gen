@@ -990,6 +990,13 @@ function setQuestionText(prompt) {
   }
 }
 
+function triggerQuestionEntrance() {
+  const stage = $(".quiz-stage");
+  stage.classList.remove("question-enter");
+  void stage.offsetWidth;
+  stage.classList.add("question-enter");
+}
+
 function renderQuestion() {
   clearAutoAdvance();
   clearQuestionTimer();
@@ -1069,6 +1076,7 @@ function renderQuestion() {
   const check = $("#checkAnswer"); check.hidden = false; check.textContent = question.type === "flashcard" ? "Pokaż odpowiedź" : "Sprawdź odpowiedź"; check.disabled = question.type !== "flashcard";
   if (savedResult) restoreCheckedQuestion(question, savedResult);
   else startQuestionTimer();
+  triggerQuestionEntrance();
 }
 
 // Cloze (gap-fill): render the text with an inline <input> for each [gap]. Gap
