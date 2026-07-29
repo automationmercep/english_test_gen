@@ -1612,6 +1612,9 @@ function showCheckedQuestion(question, result) {
   });
   feedback.append(replayButton);
   const check = $("#checkAnswer"); check.hidden = false; check.disabled = false; check.textContent = questionIndex === activeQuiz.questions.length - 1 ? "Zobacz wynik →" : "Następne pytanie →";
+  if (window.matchMedia("(max-width: 540px)").matches) {
+    requestAnimationFrame(() => feedback.scrollIntoView({ behavior: "smooth", block: "center" }));
+  }
 }
 
 function restoreCheckedQuestion(question, result) {
