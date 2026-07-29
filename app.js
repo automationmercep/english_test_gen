@@ -1268,6 +1268,7 @@ function crosswordFullscreenControl() {
 function setCrosswordFullscreen(area, expanded) {
   if (!area) return;
   area.classList.toggle("crossword-fullscreen", expanded);
+  area.closest(".quiz-stage")?.classList.toggle("crossword-fullscreen", expanded);
   document.body.classList.toggle("crossword-fullscreen-open", expanded);
   const button = $(".cw-fullscreen-toggle", area);
   if (button) {
@@ -1612,7 +1613,7 @@ function showCheckedQuestion(question, result) {
   });
   feedback.append(replayButton);
   const check = $("#checkAnswer"); check.hidden = false; check.disabled = false; check.textContent = questionIndex === activeQuiz.questions.length - 1 ? "Zobacz wynik →" : "Następne pytanie →";
-  if (window.matchMedia("(max-width: 540px)").matches) {
+  if ($(".quiz-stage").classList.contains("crossword-fullscreen") || window.matchMedia("(max-width: 540px)").matches) {
     requestAnimationFrame(() => feedback.scrollIntoView({ behavior: "smooth", block: "center" }));
   }
 }

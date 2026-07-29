@@ -229,14 +229,15 @@ test.describe('Rozgrywka krzyżówki', () => {
     expect(await focusedCrosswordCell(page)).toEqual(crossing.downPrevious);
   });
 
-  test('Fokus i pełny ekran działają dotykowo w widoku mobilnym', async ({ browser }) => {
+  test('Fokus i sprawdzanie w pełnym ekranie działają dotykowo w widoku mobilnym', async ({ browser }) => {
     const context = await browser.newContext({ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true });
     const page = await context.newPage();
     try {
       await setupCrossword(page, 'Krzyżówka — mobile');
       await page.getByRole('button', { name: 'Pełny ekran' }).tap();
       await expect(page.locator('#answerArea')).toHaveClass(/crossword-fullscreen/);
-      const box = await page.locator('#answerArea').boundingBox();
+      await expect(page.locator('.quiz-stage')).toHaveClass(/crossword-fullscreen/);
+      const box = await page.locator('.quiz-stage').boundingBox();
       expect(box?.width).toBe(390);
       expect(box?.height).toBe(844);
 
@@ -248,8 +249,22 @@ test.describe('Rozgrywka krzyżówki', () => {
       await current.fill('X');
       expect(await focusedCrosswordCell(page)).toEqual(vertical.next);
 
+      const solution = await crosswordSolution(page);
+      for (const [r, c, letter] of solution) {
+        await page.locator(`.cw-input[data-r="${r}"][data-c="${c}"]`).fill(letter);
+      }
+      const check = page.getByRole('button', { name: 'Sprawdź odpowiedź' });
+      await expect(check).toBeVisible();
+      await expect(check).toBeEnabled();
+      await check.tap();
+      await expect(page.locator('#answerArea')).toHaveClass(/crossword-fullscreen/);
+      await expect(page.locator('#feedback')).toHaveClass(/good/);
+      await expect(page.locator('#feedback')).toBeVisible();
+      await expect(page.getByRole('button', { name: 'Zobacz wynik' })).toBeVisible();
+
       await page.getByRole('button', { name: 'Zamknij pełny ekran' }).tap();
       await expect(page.locator('#answerArea')).not.toHaveClass(/crossword-fullscreen/);
+      await expect(page.locator('.quiz-stage')).not.toHaveClass(/crossword-fullscreen/);
     } finally {
       await context.close();
     }
