@@ -74,18 +74,21 @@ Wspólne kroki przygotowania:
 **Expected:**
 - Informacja zwrotna ma stan „bad", a wszystkie kratki są oznaczone jako błędne
 
-#### 2.3 Fokus, skrzyżowania i pełny ekran działają także mobilnie
+#### 2.3 Fokus, skrzyżowania i sprawdzanie w pełnym ekranie działają także mobilnie
 **Steps:**
 1. Wpisz literę w kratce należącej do pionowego hasła
 2. Kliknij skrzyżowanie i naciśnij Backspace w pustej kratce
 3. Kliknij skrzyżowanie ponownie, aby przełączyć kierunek, i ponownie naciśnij Backspace
 4. W mobilnym widoku 390×844 dotknij przycisku „Pełny ekran", a następnie wpisz literę z klawiatury ekranowej
-5. Zamknij pełny ekran przyciskiem
+5. Uzupełnij wszystkie kratki poprawnymi literami i dotknij „Sprawdź odpowiedź" bez zamykania pełnego ekranu
+6. Zamknij pełny ekran przyciskiem
 
 **Expected:**
 - Po wpisaniu litery fokus przechodzi do następnej kratki tego samego pionowego hasła, a nie do następnego pola w kolejności HTML
 - Pierwsze kliknięcie skrzyżowania wybiera hasło poziome, a ponowne kliknięcie przełącza kierunek na pionowy
 - Krzyżówka zajmuje cały ekran urządzenia; dotyk i automatyczne przejście fokusu nadal działają
+- Przycisk „Sprawdź odpowiedź" jest widoczny w pełnym ekranie, staje się aktywny po uzupełnieniu kratek i pokazuje poprawny wynik bez zamykania widoku
+- Po sprawdzeniu krzyżówka pozostaje w pełnym ekranie, a przycisk zmienia się na „Zobacz wynik"
 - Przycisk zamykania przywraca zwykły widok
 
 ### 3. Rozgrywka krzyżówki z pytaniami (quizcross)

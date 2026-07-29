@@ -1,0 +1,4 @@
+interface:
+  display_name: "English Test CSV Authoring"
+  short_description: "Twórz testy CSV ze zdjęć i list słów"
+  default_prompt: "Użyj $english-test-csv-authoring, aby ze zdjęcia lub listy słów przygotować test CSV w podanym czasie, z twierdzeniami, pytaniami i przeczeniami."
