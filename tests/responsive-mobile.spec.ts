@@ -3,6 +3,7 @@
 import { test, expect } from '@playwright/test';
 
 const PHONE = { width: 390, height: 844 };
+const IPHONE_15_PRO_MAX = { width: 430, height: 932 };
 const NARROW_PHONE = { width: 375, height: 812 };
 const TABLET = { width: 768, height: 1024 };
 
@@ -100,22 +101,39 @@ test.describe('Responsywność na telefonie i tablecie', () => {
     expect(box!.x + box!.width, 'prawa krawędź modala musi mieścić się na ekranie').toBeLessThanOrEqual(TABLET.width + 1);
   });
 
-  test('Telefon: tryb testu ukrywa narzędzia i utrzymuje akcje w ekranie', async ({ page }) => {
-    await page.setViewportSize(PHONE);
+  test('iPhone 15 Pro Max: ustawienia są dostępne podczas testu, a akcje mieszczą się w ekranie', async ({ page }) => {
+    await page.setViewportSize(IPHONE_15_PRO_MAX);
     await page.goto('/');
     await page.locator('.quiz-card', { hasText: 'Everyday English' }).click();
 
     await expect(page.locator('body')).toHaveClass(/quiz-mode/);
     await expect(page.locator('#topbarTools')).toBeHidden();
-    await expect(page.locator('#mobileMenuToggle')).toBeHidden();
+    await expect(page.locator('#mobileMenuToggle')).toBeVisible();
     await expect(page.locator('.brand')).toBeVisible();
+
+    await page.locator('#mobileMenuToggle').click();
+    await expect(page.locator('#topbarTools')).toHaveClass(/open/);
+    await expect(page.locator('#themeToggle')).toBeVisible();
+    await expect(page.locator('#soundToggle')).toBeVisible();
+    await expect(page.locator('#musicToggle')).toBeVisible();
+    await expect(page.locator('#soundSettings')).toBeVisible();
+
+    await page.locator('#themeToggle').click();
+    await page.locator('.theme-swatch[data-theme="night"]').click();
+    await expect(page.locator('body')).toHaveClass(/theme-night/);
+    await page.locator('#soundToggle').click();
+    await expect(page.locator('#soundToggle')).toHaveClass(/muted/);
+    await page.locator('#musicToggle').click();
+    await expect(page.locator('#musicToggle')).toHaveClass(/muted/);
+    await page.locator('#soundSettings').click();
+    await expect(page.locator('#soundMessagesModal')).toBeVisible();
 
     const actions = page.locator('.question-navigation');
     await expect(actions).toBeVisible();
     const box = await actions.boundingBox();
     expect(box).not.toBeNull();
     expect(box!.y).toBeGreaterThanOrEqual(0);
-    expect(box!.y + box!.height).toBeLessThanOrEqual(PHONE.height + 1);
+    expect(box!.y + box!.height).toBeLessThanOrEqual(IPHONE_15_PRO_MAX.height + 1);
     await expectNoHorizontalScroll(page);
   });
 

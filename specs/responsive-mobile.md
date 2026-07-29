@@ -1,7 +1,7 @@
 # Scenariusz: Responsywność na telefonie i tablecie
 
 Sprawdza, że aplikacja poprawnie wyświetla się i działa na małych ekranach
-(telefon ~390px, tablet ~768px), gdzie górna nawigacja `nav` jest ukrywana
+(telefon 390px oraz iPhone 15 Pro Max 430px, tablet ~768px), gdzie górna nawigacja `nav` jest ukrywana
 przez media query `max-width: 800px`.
 
 ## Seed
@@ -17,6 +17,7 @@ seed.spec.ts (świeży stan, brak dodatkowej konfiguracji)
 
 ## Warianty ekranów
 - Telefon: 390 × 844 (iPhone-podobny)
+- iPhone 15 Pro Max: 430 × 932
 - Tablet: 768 × 1024 (iPad-podobny, dokładnie na granicy media query)
 
 ## Kroki i oczekiwania
@@ -48,3 +49,11 @@ seed.spec.ts (świeży stan, brak dodatkowej konfiguracji)
    - Oczekiwane: klawisz Tab zapętla fokus wewnątrz modalu.
    - Oczekiwane: Escape zamyka modal i przywraca fokus na przycisku, który go
      otworzył.
+
+7. Na iPhonie 15 Pro Max (430×932) rozpocznij test i otwórz menu z górnego paska.
+   - Oczekiwane: podczas testu dostępne są ustawienia motywu, dźwięku, muzyki
+     i komunikatów.
+   - Oczekiwane: można zmienić motyw, wyciszyć dźwięk i muzykę oraz otworzyć
+     modal komunikatów bez opuszczania testu.
+   - Oczekiwane: dolna nawigacja testu mieści się w ekranie i nie powoduje
+     poziomego przewijania.

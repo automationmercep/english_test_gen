@@ -298,7 +298,9 @@ const QUIZCROSS_CSV = 'Odpowiedz na pytania., cat=A pet that meows, dog=A pet th
 
 async function setupQuizCross(page: Page, title: string) {
   await page.goto('/');
-  await page.locator('.nav-link[data-view="create"]').click();
+  const createLink = page.locator('.nav-link[data-view="create"]');
+  if (await createLink.isVisible()) await createLink.click();
+  else await page.getByRole('button', { name: 'Nowy test' }).click();
   await page.locator('#quizTitle').fill(title);
   await page.locator('#csvInput').fill(QUIZCROSS_CSV);
   await page.locator('#importCsv').click();
@@ -310,6 +312,43 @@ async function setupQuizCross(page: Page, title: string) {
 }
 
 test.describe('Rozgrywka krzyżówki z pytaniami', () => {
+  test('Na iPhonie wszystkie pytania mają ten sam pionowy układ i nie wychodzą poza ekran', async ({ browser }) => {
+    const context = await browser.newContext({ viewport: { width: 430, height: 932 }, hasTouch: true, isMobile: true });
+    const page = await context.newPage();
+    try {
+      await setupQuizCross(page, 'Krzyżówka pytania — iPhone');
+      const rows = page.locator('.cw-row');
+      await expect(rows).toHaveCount(3);
+
+      const geometry = await rows.evaluateAll(elements => elements.map(row => {
+        const clue = row.querySelector('.cw-clue')!.getBoundingClientRect();
+        const cells = row.querySelector('.cw-cells')!.getBoundingClientRect();
+        return { clueBottom: clue.bottom, cellsTop: cells.top, cellsLeft: cells.left, cellsRight: cells.right };
+      }));
+      for (const row of geometry) {
+        expect(row.cellsTop, 'kratki powinny być pod pytaniem').toBeGreaterThanOrEqual(row.clueBottom - 1);
+        expect(row.cellsLeft, 'kratki nie mogą wychodzić poza lewą krawędź').toBeGreaterThanOrEqual(0);
+        expect(row.cellsRight, 'kratki nie mogą wychodzić poza prawą krawędź').toBeLessThanOrEqual(431);
+      }
+      expect(new Set(geometry.map(row => Math.round(row.cellsLeft))).size, 'wszystkie odpowiedzi powinny zaczynać się w tej samej kolumnie').toBe(1);
+      await expect(page.getByRole('button', { name: 'Pełny ekran' })).toBeVisible();
+
+      const solution = await crosswordSolution(page);
+      for (const [r, c, letter] of solution) {
+        await page.locator(`.cw-input[data-r="${r}"][data-c="${c}"]`).fill(letter);
+      }
+      await page.locator('#checkAnswer').click();
+      await expect(page.locator('#feedback')).toHaveClass(/good/);
+      await expect.poll(async () => {
+        const replay = await page.locator('.replay-sentence').boundingBox();
+        const navigation = await page.locator('.question-navigation').boundingBox();
+        return Boolean(replay && navigation && replay.y + replay.height <= navigation.y + 1);
+      }, { message: 'komunikat i odtwarzanie nie mogą być zasłonięte przez dolną nawigację' }).toBe(true);
+    } finally {
+      await context.close();
+    }
+  });
+
   test('Fokus przechodzi do kolejnej kratki, następnego hasła i działa w pełnym ekranie', async ({ page }) => {
     await setupQuizCross(page, 'Krzyżówka pytania — fokus');
     await page.getByRole('button', { name: 'Pełny ekran' }).click();

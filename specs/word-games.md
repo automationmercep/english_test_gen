@@ -115,7 +115,18 @@ Wspólne kroki przygotowania: jak wyżej (import CSV, zapis, start).
 **Expected:**
 - Po każdej literze fokus przechodzi do kolejnej kratki bieżącego hasła
 - Po ostatniej literze w rzędzie fokus przechodzi do pierwszej kratki następnego pytania
-- Przycisk „Pełny ekran" otwiera powiększony widok, który można zamknąć klawiszem Escape
+- Przycisk „Pełny ekran” otwiera powiększony widok, który można zamknąć klawiszem Escape
+
+#### 3.4 Układ na iPhonie 15 Pro Max
+**Steps:**
+1. Ustaw mobilny viewport 430×932 i rozpocznij krzyżówkę z pytaniami.
+
+**Expected:**
+- Każda odpowiedź, niezależnie od liczby liter, znajduje się pod swoim pytaniem.
+- Wszystkie rzędy kratek zaczynają się w tej samej kolumnie i mieszczą się w ekranie.
+- Przycisk „Pełny ekran” pozostaje dostępny.
+- Po sprawdzeniu odpowiedzi komunikat i przycisk ponownego odtworzenia są widoczne
+  nad stałą dolną nawigacją.
 
 ### 4. Rozgrywka krzyżówki z hasłem (keycross)
 
