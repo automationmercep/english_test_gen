@@ -409,9 +409,27 @@ function generateGrammarQuestions() {
 function showView(name) {
   $$(".view").forEach(view => view.classList.remove("active"));
   $(`#${name}View`).classList.add("active");
+  document.body.classList.toggle("quiz-mode", name === "play");
+  closeMobileMenu();
   $$(".nav-link").forEach(link => link.classList.toggle("active", link.dataset.view === name));
   if (name === "home") renderQuizGrid();
   window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+function closeMobileMenu() {
+  const tools = $("#topbarTools");
+  const toggle = $("#mobileMenuToggle");
+  if (!tools || !toggle) return;
+  tools.classList.remove("open");
+  toggle.setAttribute("aria-expanded", "false");
+}
+
+function toggleMobileMenu() {
+  const tools = $("#topbarTools");
+  const toggle = $("#mobileMenuToggle");
+  const open = !tools.classList.contains("open");
+  tools.classList.toggle("open", open);
+  toggle.setAttribute("aria-expanded", String(open));
 }
 
 function getCategories() {
@@ -2486,6 +2504,11 @@ if ("speechSynthesis" in window) {
   });
 }
 $("#dailyWordsSettings").addEventListener("click", openDailyWordsSettings);
+$("#mobileMenuToggle").addEventListener("click", event => { event.stopPropagation(); toggleMobileMenu(); });
+$("#mobileMenuClose").addEventListener("click", closeMobileMenu);
+$("#topbarTools").addEventListener("click", event => event.stopPropagation());
+document.addEventListener("click", closeMobileMenu);
+document.addEventListener("keydown", event => { if (event.key === "Escape") closeMobileMenu(); });
 $("#cancelDailyWords").addEventListener("click", closeDailyWordsSettings);
 $("#restoreDailyWords").addEventListener("click", restoreDefaultDailyWords);
 $("#dailyWordsForm").addEventListener("submit", saveConfiguredDailyWords);

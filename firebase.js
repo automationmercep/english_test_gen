@@ -3,6 +3,7 @@ import {
   getAuth,
   GoogleAuthProvider,
   signInWithPopup,
+  signInWithRedirect,
   signOut,
   onAuthStateChanged
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
@@ -100,13 +101,66 @@ onAuthStateChanged(auth, async user => {
   }
 });
 
-document.getElementById("loginButton").addEventListener("click", () => {
-  signInWithPopup(auth, provider).catch(err => {
-    if (err.code !== "auth/popup-closed-by-user") {
-      alert("Błąd logowania: " + err.message);
-    }
+const loginButton = document.getElementById("loginButton");
+let authToastTimer = null;
+
+function showAuthStatus(message) {
+  const toast = document.getElementById("toast");
+  if (!toast) return;
+  clearTimeout(authToastTimer);
+  toast.textContent = message;
+  toast.classList.add("show");
+  authToastTimer = setTimeout(() => toast.classList.remove("show"), 5000);
+}
+
+function setLoginPending(pending) {
+  loginButton.disabled = pending;
+  loginButton.setAttribute("aria-busy", String(pending));
+  loginButton.textContent = pending ? "Łączenie…" : "🔒 Zaloguj się";
+}
+
+function handleLoginError(error) {
+  if (error.code === "auth/popup-closed-by-user" || error.code === "auth/cancelled-popup-request") {
+    showAuthStatus("Logowanie anulowane");
+  } else if (error.code === "auth/unauthorized-domain") {
+    showAuthStatus(`Logowanie nie jest dozwolone dla adresu ${location.hostname}. Dodaj go w Firebase Authentication → Authorized domains.`);
+  } else if (error.code === "auth/popup-blocked") {
+    showAuthStatus("Przeglądarka zablokowała okno logowania. Zezwól na wyskakujące okna i spróbuj ponownie.");
+  } else {
+    showAuthStatus("Nie udało się rozpocząć logowania. Spróbuj ponownie.");
+    console.error("Firebase sign-in failed", error);
+  }
+  setLoginPending(false);
+}
+
+function startGoogleSignIn(useRedirect = false) {
+  setLoginPending(true);
+  showAuthStatus(useRedirect ? "Przekierowuję do logowania Google…" : "Otwieram logowanie Google…");
+  const operation = useRedirect ? signInWithRedirect(auth, provider) : signInWithPopup(auth, provider);
+  operation.catch(handleLoginError).finally(() => {
+    if (!useRedirect) setLoginPending(false);
   });
+}
+
+loginButton.addEventListener("click", () => {
+  if (location.hostname === "127.0.0.1") {
+    const canonicalUrl = new URL(location.href);
+    canonicalUrl.hostname = "localhost";
+    canonicalUrl.searchParams.set("continueGoogleSignIn", "1");
+    setLoginPending(true);
+    showAuthStatus("Przełączam na adres obsługujący logowanie Google…");
+    setTimeout(() => location.replace(canonicalUrl.href), 350);
+    return;
+  }
+  startGoogleSignIn();
 });
+
+const currentUrl = new URL(location.href);
+if (currentUrl.searchParams.get("continueGoogleSignIn") === "1") {
+  currentUrl.searchParams.delete("continueGoogleSignIn");
+  history.replaceState(null, "", currentUrl.href);
+  startGoogleSignIn(true);
+}
 
 document.getElementById("logoutButton").addEventListener("click", () => {
   signOut(auth);

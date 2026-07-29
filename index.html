@@ -20,49 +20,58 @@
         <button class="nav-link active" data-view="home">Moje testy</button>
         <button class="nav-link" data-view="create">Stwórz test</button>
       </nav>
-      <div id="authSection" class="auth-section">
-        <button id="loginButton" class="auth-button" type="button">🔒 Zaloguj się</button>
-        <div id="userInfo" class="user-info" hidden>
-          <img id="userAvatar" class="user-avatar" src="" alt="Avatar" hidden />
-          <span id="userName" class="user-name"></span>
-          <button id="logoutButton" class="auth-button auth-logout" type="button">Wyloguj</button>
+      <button id="mobileMenuToggle" class="mobile-menu-toggle" type="button" aria-expanded="false" aria-controls="topbarTools">
+        <span aria-hidden="true">☰</span><span>Menu</span>
+      </button>
+      <div id="topbarTools" class="topbar-tools">
+        <div class="mobile-menu-header">
+          <strong>Ustawienia</strong>
+          <button id="mobileMenuClose" class="mobile-menu-close" type="button" aria-label="Zamknij menu">×</button>
         </div>
-      </div>
-      <div class="sound-controls">
-        <div class="theme-picker-wrap">
-          <button class="theme-toggle" id="themeToggle" aria-label="Zmień motyw aplikacji" title="Zmień motyw">
-            <span class="theme-dot" aria-hidden="true"></span><span class="theme-label">Motyw</span>
-          </button>
-          <div class="theme-panel" id="themePanel" hidden>
-            <p class="theme-panel-title">Wybierz motyw</p>
-            <div class="theme-swatches">
-              <button class="theme-swatch" data-theme="forest" title="Las (domyślny)" aria-label="Motyw: Las"></button>
-              <button class="theme-swatch" data-theme="ocean" title="Ocean" aria-label="Motyw: Ocean"></button>
-              <button class="theme-swatch" data-theme="sunset" title="Zachód słońca" aria-label="Motyw: Zachód słońca"></button>
-              <button class="theme-swatch" data-theme="lavender" title="Lawenda" aria-label="Motyw: Lawenda"></button>
-              <button class="theme-swatch" data-theme="night" title="Noc" aria-label="Motyw: Noc"></button>
-            </div>
+        <div id="authSection" class="auth-section">
+          <button id="loginButton" class="auth-button" type="button">🔒 Zaloguj się</button>
+          <div id="userInfo" class="user-info" hidden>
+            <img id="userAvatar" class="user-avatar" src="" alt="Avatar" hidden />
+            <span id="userName" class="user-name"></span>
+            <button id="logoutButton" class="auth-button auth-logout" type="button">Wyloguj</button>
           </div>
         </div>
-        <button class="sound-toggle" id="soundToggle" aria-label="Wyłącz dźwięki" title="Dźwięki włączone">
-          <span aria-hidden="true">♪</span><span class="sound-label">Dźwięk</span>
-        </button>
-        <button class="sound-toggle" id="musicToggle" aria-label="Wyłącz muzykę w tle" title="Muzyka włączona">
-          <span aria-hidden="true">♫</span><span class="sound-label">Muzyka</span>
-        </button>
-        <button class="sound-settings" id="soundSettings" type="button" aria-label="Konfiguruj komunikaty dźwiękowe" title="Konfiguruj komunikaty">
-          <span aria-hidden="true">⚙</span><span class="sound-settings-label">Komunikaty</span>
-        </button>
-        <div class="data-actions-wrap">
-          <button id="toggleDataPanel" class="sound-settings data-toggle" type="button" aria-expanded="false" aria-controls="dataActionsPanel" title="Dane (eksport / import)">
-            <span aria-hidden="true">↓↑</span><span class="sound-settings-label">Dane</span>
+        <div class="sound-controls">
+          <div class="theme-picker-wrap">
+            <button class="theme-toggle" id="themeToggle" aria-label="Zmień motyw aplikacji" title="Zmień motyw">
+              <span class="theme-dot" aria-hidden="true"></span><span class="theme-label">Motyw</span>
+            </button>
+            <div class="theme-panel" id="themePanel" hidden>
+              <p class="theme-panel-title">Wybierz motyw</p>
+              <div class="theme-swatches">
+                <button class="theme-swatch" data-theme="forest" title="Las (domyślny)" aria-label="Motyw: Las"></button>
+                <button class="theme-swatch" data-theme="ocean" title="Ocean" aria-label="Motyw: Ocean"></button>
+                <button class="theme-swatch" data-theme="sunset" title="Zachód słońca" aria-label="Motyw: Zachód słońca"></button>
+                <button class="theme-swatch" data-theme="lavender" title="Lawenda" aria-label="Motyw: Lawenda"></button>
+                <button class="theme-swatch" data-theme="night" title="Noc" aria-label="Motyw: Noc"></button>
+              </div>
+            </div>
+          </div>
+          <button class="sound-toggle" id="soundToggle" aria-label="Wyłącz dźwięki" title="Dźwięki włączone">
+            <span aria-hidden="true">♪</span><span class="sound-label">Dźwięk</span>
           </button>
-          <div id="dataActionsPanel" class="data-actions-panel" hidden>
-            <button id="exportData" class="data-panel-item" type="button"><span aria-hidden="true">↑</span> Eksportuj dane</button>
-            <label class="data-panel-item" for="importDataFile"><span aria-hidden="true">↓</span> Importuj dane</label>
-            <input id="importDataFile" type="file" accept=".json,application/json" hidden />
-            <label class="data-panel-item" for="mergeQuizzesFile"><span aria-hidden="true">✚</span> Dodaj testy</label>
-            <input id="mergeQuizzesFile" type="file" accept=".json,application/json" hidden />
+          <button class="sound-toggle" id="musicToggle" aria-label="Wyłącz muzykę w tle" title="Muzyka włączona">
+            <span aria-hidden="true">♫</span><span class="sound-label">Muzyka</span>
+          </button>
+          <button class="sound-settings" id="soundSettings" type="button" aria-label="Konfiguruj komunikaty dźwiękowe" title="Konfiguruj komunikaty">
+            <span aria-hidden="true">⚙</span><span class="sound-settings-label">Komunikaty</span>
+          </button>
+          <div class="data-actions-wrap">
+            <button id="toggleDataPanel" class="sound-settings data-toggle" type="button" aria-expanded="false" aria-controls="dataActionsPanel" title="Dane (eksport / import)">
+              <span aria-hidden="true">↓↑</span><span class="sound-settings-label">Dane</span>
+            </button>
+            <div id="dataActionsPanel" class="data-actions-panel" hidden>
+              <button id="exportData" class="data-panel-item" type="button"><span aria-hidden="true">↑</span> Eksportuj dane</button>
+              <label class="data-panel-item" for="importDataFile"><span aria-hidden="true">↓</span> Importuj dane</label>
+              <input id="importDataFile" type="file" accept=".json,application/json" hidden />
+              <label class="data-panel-item" for="mergeQuizzesFile"><span aria-hidden="true">✚</span> Dodaj testy</label>
+              <input id="mergeQuizzesFile" type="file" accept=".json,application/json" hidden />
+            </div>
           </div>
         </div>
       </div>

@@ -19,6 +19,9 @@ test.describe('Responsywność na telefonie i tablecie', () => {
 
     // 1. Nawigacja górna jest ukryta na telefonie (media query max-width: 800px).
     await expect(page.locator('nav[aria-label="Główna nawigacja"]')).toBeHidden();
+    await expect(page.locator('#loginButton')).toBeHidden();
+    await expect(page.locator('#logoutButton')).toBeHidden();
+    await expect(page.locator('#mobileMenuToggle')).toBeVisible();
     await expectNoHorizontalScroll(page);
 
     // Sekcja hero i alternatywny przycisk wejścia do kreatora są widoczne.
@@ -48,6 +51,18 @@ test.describe('Responsywność na telefonie i tablecie', () => {
 
     // Otwórz panel motywu (na mobile topbar się zawija, więc panel nie może
     // rozwijać się poza lewą krawędź — regresja wykryta na urządzeniu mobilnym).
+    await page.locator('#mobileMenuToggle').click();
+    await expect(page.locator('#topbarTools')).toHaveClass(/open/);
+    await expect(page.getByText('Ustawienia', { exact: true })).toBeVisible();
+    await expect(page.locator('#loginButton')).toBeVisible();
+    await expect(page.locator('#logoutButton')).toBeHidden();
+    const menuActions = page.locator('#themeToggle, #soundToggle, #musicToggle, #soundSettings');
+    const actionBoxes = await menuActions.evaluateAll(elements => elements.map(element => {
+      const box = element.getBoundingClientRect();
+      return { width: box.width, height: box.height };
+    }));
+    expect(new Set(actionBoxes.map(box => Math.round(box.width))).size, 'przyciski w siatce powinny mieć równą szerokość').toBe(1);
+    expect(new Set(actionBoxes.map(box => Math.round(box.height))).size, 'przyciski w siatce powinny mieć równą wysokość').toBe(1);
     await page.locator('#themeToggle').click();
     const panel = page.locator('#themePanel');
     await expect(panel).toBeVisible();
@@ -73,6 +88,7 @@ test.describe('Responsywność na telefonie i tablecie', () => {
     await expect(page.getByRole('button', { name: /Nowy test/ })).toBeVisible();
 
     // 5. Modal ustawień dźwięku otwiera się i mieści w szerokości ekranu.
+    await page.locator('#mobileMenuToggle').click();
     await page.locator('#soundSettings').click();
     const modal = page.locator('#soundMessagesModal');
     await expect(modal).toBeVisible();
@@ -81,5 +97,24 @@ test.describe('Responsywność na telefonie i tablecie', () => {
     expect(box).not.toBeNull();
     expect(box!.x, 'lewa krawędź modala musi być na ekranie').toBeGreaterThanOrEqual(0);
     expect(box!.x + box!.width, 'prawa krawędź modala musi mieścić się na ekranie').toBeLessThanOrEqual(TABLET.width + 1);
+  });
+
+  test('Telefon: tryb testu ukrywa narzędzia i utrzymuje akcje w ekranie', async ({ page }) => {
+    await page.setViewportSize(PHONE);
+    await page.goto('/');
+    await page.locator('.quiz-card', { hasText: 'Everyday English' }).click();
+
+    await expect(page.locator('body')).toHaveClass(/quiz-mode/);
+    await expect(page.locator('#topbarTools')).toBeHidden();
+    await expect(page.locator('#mobileMenuToggle')).toBeHidden();
+    await expect(page.locator('.brand')).toBeVisible();
+
+    const actions = page.locator('.question-navigation');
+    await expect(actions).toBeVisible();
+    const box = await actions.boundingBox();
+    expect(box).not.toBeNull();
+    expect(box!.y).toBeGreaterThanOrEqual(0);
+    expect(box!.y + box!.height).toBeLessThanOrEqual(PHONE.height + 1);
+    await expectNoHorizontalScroll(page);
   });
 });
