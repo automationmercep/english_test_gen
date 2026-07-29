@@ -13,3 +13,16 @@
 - Po zaznaczeniu odpowiedzi przycisk "Sprawdź odpowiedź" staje się aktywny
 - Po sprawdzeniu odpowiedzi widoczna jest informacja zwrotna (poprawna/błędna)
 - Po ostatnim pytaniu wyświetla się widok wyników z elementem wyniku procentowego (#scorePercent) oraz liczbą poprawnych/łącznych odpowiedzi
+
+#### 1.2 Animowane wejście pytania
+**Steps:**
+1. Na stronie głównej rozpocznij test "Everyday English"
+2. Obserwuj pojawienie się etykiety, treści pytania i odpowiedzi
+3. Sprawdź pierwszą odpowiedź i przejdź do następnego pytania
+4. Powtórz kontrolę przy mobilnym rozmiarze ekranu
+5. Włącz systemową preferencję ograniczenia ruchu i ponownie rozpocznij test
+
+**Expected:**
+- Etykieta, treść i odpowiedzi otrzymują krótką animację wejścia, a odpowiedzi mają rosnące opóźnienia tworzące efekt kaskady
+- Animacja uruchamia się ponownie po przejściu do następnego pytania i działa w układzie mobilnym
+- Przy preferencji `prefers-reduced-motion: reduce` animacja wejścia jest wyłączona
