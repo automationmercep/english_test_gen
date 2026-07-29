@@ -167,12 +167,63 @@ let draggingQuizId = null;
 let suppressCardClick = false;
 let mouseQuizDrag = null;
 let pendingCategoryDeletion = null;
+let activeModalState = null;
 let matchSelectedTileId = null;
 let wordSearchAnchor = null;
 const MATCH_COLORS = ["#2fa4dc", "#d1263f", "#f0a95c", "#1c7a41", "#c25fd1", "#2340b8", "#2bbd80", "#e2551f", "#7332c4", "#1e9bdb"];
 
 const $ = (selector, root = document) => root.querySelector(selector);
 const $$ = (selector, root = document) => [...root.querySelectorAll(selector)];
+
+function modalFocusableElements(backdrop) {
+  const dialog = backdrop.querySelector('[role="dialog"], [role="alertdialog"]');
+  if (!dialog) return [];
+  return $$('button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [href], [tabindex]:not([tabindex="-1"])', dialog)
+    .filter(element => element.getClientRects().length > 0);
+}
+
+function openAccessibleModal(backdrop, close, initialFocus) {
+  const opener = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+  backdrop.hidden = false;
+  document.body.classList.add("modal-open");
+  activeModalState = { backdrop, close, opener };
+  setTimeout(() => {
+    if (!activeModalState || activeModalState.backdrop !== backdrop) return;
+    const target = initialFocus || modalFocusableElements(backdrop)[0];
+    if (target) target.focus();
+  }, 0);
+}
+
+function closeAccessibleModal(backdrop) {
+  backdrop.hidden = true;
+  if (!activeModalState || activeModalState.backdrop !== backdrop) return;
+  const { opener } = activeModalState;
+  activeModalState = null;
+  document.body.classList.remove("modal-open");
+  if (opener && opener.isConnected) setTimeout(() => opener.focus(), 0);
+}
+
+function handleModalKeydown(event) {
+  if (!activeModalState) return false;
+  if (event.key === "Escape") {
+    event.preventDefault();
+    activeModalState.close();
+    return true;
+  }
+  if (event.key !== "Tab") return false;
+  const focusable = modalFocusableElements(activeModalState.backdrop);
+  if (!focusable.length) return false;
+  const first = focusable[0];
+  const last = focusable[focusable.length - 1];
+  if (event.shiftKey && (document.activeElement === first || !activeModalState.backdrop.contains(document.activeElement))) {
+    event.preventDefault();
+    last.focus();
+  } else if (!event.shiftKey && (document.activeElement === last || !activeModalState.backdrop.contains(document.activeElement))) {
+    event.preventDefault();
+    first.focus();
+  }
+  return true;
+}
 
 function loadQuizzes() {
   try {
@@ -253,12 +304,11 @@ function renderRandomDailyWord() {
 
 function openDailyWordsSettings() {
   $("#dailyWordsInput").value = dailyWordsToCsv(dailyWords);
-  $("#dailyWordsModal").hidden = false;
-  setTimeout(() => $("#dailyWordsInput").focus(), 0);
+  openAccessibleModal($("#dailyWordsModal"), closeDailyWordsSettings, $("#dailyWordsInput"));
 }
 
 function closeDailyWordsSettings() {
-  $("#dailyWordsModal").hidden = true;
+  closeAccessibleModal($("#dailyWordsModal"));
 }
 
 function restoreDefaultDailyWords() {
@@ -437,13 +487,12 @@ function getCategories() {
 }
 
 function createCategory() {
-  $("#categoryModal").hidden = false;
   $("#newCategoryName").value = "";
-  setTimeout(() => $("#newCategoryName").focus(), 0);
+  openAccessibleModal($("#categoryModal"), closeCategoryModal, $("#newCategoryName"));
 }
 
 function closeCategoryModal() {
-  $("#categoryModal").hidden = true;
+  closeAccessibleModal($("#categoryModal"));
 }
 
 function saveCreatedCategory(event) {
@@ -484,12 +533,11 @@ function openSoundMessages() {
   $("#questionTimeLimit").value = questionTimeLimit;
   $("#readAnswerToggle").checked = readAnswer;
   renderVoiceOptions();
-  $("#soundMessagesModal").hidden = false;
-  setTimeout(() => $("#correctSoundText").focus(), 0);
+  openAccessibleModal($("#soundMessagesModal"), closeSoundMessages, $("#correctSoundText"));
 }
 
 function closeSoundMessages() {
-  $("#soundMessagesModal").hidden = true;
+  closeAccessibleModal($("#soundMessagesModal"));
 }
 
 function saveConfiguredSoundMessages(event) {
@@ -520,13 +568,12 @@ function requestCategoryDeletion(category) {
   $("#deleteCategoryDescription").textContent = count
     ? "Liczba testów, które zostaną trwale usunięte: " + count + "."
     : "Kategoria jest pusta i zostanie trwale usunięta.";
-  $("#deleteCategoryModal").hidden = false;
-  $("#confirmDeleteCategory").focus();
+  openAccessibleModal($("#deleteCategoryModal"), closeDeleteCategoryModal, $("#confirmDeleteCategory"));
 }
 
 function closeDeleteCategoryModal() {
   pendingCategoryDeletion = null;
-  $("#deleteCategoryModal").hidden = true;
+  closeAccessibleModal($("#deleteCategoryModal"));
 }
 
 function deleteCategoryWithQuizzes() {
@@ -646,21 +693,21 @@ function renderQuizGrid() {
     return;
   }
   grid.innerHTML = visibleQuizzes.map((quiz) => `
-    <article class="quiz-card" data-id="${quiz.id}" data-letter="${escapeHtml(quiz.title.charAt(0).toUpperCase())}" tabindex="0" role="button" draggable="true" title="Przeciągnij na folder, aby zmienić kategorię" aria-label="Rozpocznij test ${escapeHtml(quiz.title)}">
+    <article class="quiz-card" data-id="${quiz.id}" data-letter="${escapeHtml(quiz.title.charAt(0).toUpperCase())}" draggable="true" title="Przeciągnij na folder, aby zmienić kategorię">
       <div class="card-tags"><span class="tag level">${escapeHtml(quiz.level)}</span><span class="tag">${escapeHtml(quiz.category || "Angielski")}</span>${quiz.dynamic ? '<span class="tag random-tag">↻ Losowany</span>' : !starterQuizzes.some(item => item.id === quiz.id) ? (quiz.shuffleQuestions !== false || quiz.shuffleAnswers !== false ? '<span class="tag random-tag">↻ Losowany</span>' : '<span class="tag fixed-tag">Stała kolejność</span>') : ""}${srHardTag(quiz.id)}</div>
       <h3>${escapeHtml(quiz.title)}</h3><p>${quiz.questions.length} ${quiz.questions.length === 1 ? "pytanie" : "pytań"}</p>
       <div class="card-footer"><span>Rozpocznij</span><span class="play-circle">→</span></div>
+      <button type="button" class="quiz-card-start" aria-label="Rozpocznij test ${escapeHtml(quiz.title)}"></button>
       <div class="card-tools"><button class="card-tool delete-quiz" title="Usuń test" aria-label="Usuń test">Usuń</button><button class="card-tool print-quiz" title="Drukuj test" aria-label="Drukuj test">🖨 Drukuj</button><button class="card-tool edit-quiz" title="Edytuj test" aria-label="Edytuj test">✎ Edytuj</button></div>
     </article>`).join("");
   $$(".quiz-card", grid).forEach(card => {
-    card.addEventListener("click", event => {
+    $(".quiz-card-start", card).addEventListener("click", () => {
       if (suppressCardClick) return;
-      if (event.target.closest(".delete-quiz")) return deleteQuiz(card.dataset.id);
-      if (event.target.closest(".print-quiz")) return printQuiz(card.dataset.id);
-      if (event.target.closest(".edit-quiz")) return editQuiz(card.dataset.id);
       startQuiz(card.dataset.id);
     });
-    card.addEventListener("keydown", event => { if (event.target.closest(".card-tool")) return; if (event.key === "Enter" || event.key === " ") { event.preventDefault(); startQuiz(card.dataset.id); } });
+    $(".delete-quiz", card).addEventListener("click", () => deleteQuiz(card.dataset.id));
+    $(".print-quiz", card).addEventListener("click", () => printQuiz(card.dataset.id));
+    $(".edit-quiz", card).addEventListener("click", () => editQuiz(card.dataset.id));
     card.addEventListener("dragstart", event => {
       draggingQuizId = card.dataset.id;
       suppressCardClick = true;
@@ -946,6 +993,7 @@ function setQuestionText(prompt) {
 function renderQuestion() {
   clearAutoAdvance();
   clearQuestionTimer();
+  setCrosswordFullscreen($("#answerArea"), false);
   const question = activeQuiz.questions[questionIndex];
   selectedAnswer = question.type === "choice" || question.type === "order" || question.type === "anagram" ? [] : question.type === "cloze" ? clozeGapAnswers(question.text).map(() => "") : question.type === "match" || question.type === "crossword" || question.type === "quizcross" || question.type === "keycross" ? {} : question.type === "wordsearch" ? { found: [], cells: [] } : question.type === "correct" ? { wordIndex: null, fix: "" } : null; hasChecked = false;
   matchSelectedTileId = null;
@@ -1213,6 +1261,32 @@ function renderCrosswordAnswer(question, disabled = false) {
   renderCrosswordGrid(question, question.crossword, disabled);
 }
 
+function crosswordFullscreenControl() {
+  return '<button type="button" class="button secondary cw-fullscreen-toggle" aria-expanded="false">⛶ Pełny ekran</button>';
+}
+
+function setCrosswordFullscreen(area, expanded) {
+  if (!area) return;
+  area.classList.toggle("crossword-fullscreen", expanded);
+  document.body.classList.toggle("crossword-fullscreen-open", expanded);
+  const button = $(".cw-fullscreen-toggle", area);
+  if (button) {
+    button.setAttribute("aria-expanded", String(expanded));
+    button.textContent = expanded ? "× Zamknij pełny ekran" : "⛶ Pełny ekran";
+  }
+}
+
+function bindCrosswordFullscreen(area) {
+  const button = $(".cw-fullscreen-toggle", area);
+  if (!button) return;
+  setCrosswordFullscreen(area, area.classList.contains("crossword-fullscreen"));
+  button.addEventListener("click", () => {
+    const expanded = !area.classList.contains("crossword-fullscreen");
+    setCrosswordFullscreen(area, expanded);
+    if (!expanded) button.focus();
+  });
+}
+
 function renderQuizCrosswordAnswer(question, disabled = false) {
   const area = $("#answerArea");
   const { grid, entries } = question.crossword;
@@ -1227,7 +1301,8 @@ function renderQuizCrosswordAnswer(question, disabled = false) {
     }).join("");
     return `<div class="cw-row"><div class="cw-clue"><span class="cw-number">${entry.number}.</span> ${escapeHtml(entry.clue || entry.answer)}</div><div class="cw-cells">${cellsHtml}</div></div>`;
   };
-  area.innerHTML = `<div class="quizcross-builder ${disabled ? "disabled" : ""}">${entries.map(rowHtml).join("")}</div>`;
+  area.innerHTML = `${crosswordFullscreenControl()}<div class="quizcross-builder ${disabled ? "disabled" : ""}">${entries.map(rowHtml).join("")}</div>`;
+  bindCrosswordFullscreen(area);
   if (disabled) return;
   bindCrosswordInputs(question, area);
 }
@@ -1250,7 +1325,8 @@ function renderKeyCrosswordAnswer(question, disabled = false) {
     }
     return `<div class="keycross-row"><div class="keycross-cells" style="grid-template-columns: repeat(${cols}, 1fr)">${cellsHtml.join("")}</div><div class="cw-clue"><span class="cw-number">${entry.number}.</span> ${escapeHtml(entry.clue || entry.answer)}</div></div>`;
   }).join("");
-  area.innerHTML = `<div class="keycross-builder ${disabled ? "disabled" : ""}" style="--key-col:${keyCol}"><p class="keycross-hint">Litery w kolorowej kolumnie utworzą hasło.</p>${rowsHtml}</div>`;
+  area.innerHTML = `${crosswordFullscreenControl()}<div class="keycross-builder ${disabled ? "disabled" : ""}" style="--key-col:${keyCol}"><p class="keycross-hint">Litery w kolorowej kolumnie utworzą hasło.</p>${rowsHtml}</div>`;
+  bindCrosswordFullscreen(area);
   if (disabled) return;
   bindCrosswordInputs(question, area);
 }
@@ -1258,20 +1334,42 @@ function renderKeyCrosswordAnswer(question, disabled = false) {
 // Shared: wire up letter-cell inputs (auto-advance, backspace-back, enable check).
 function bindCrosswordInputs(question, area) {
   const totalCells = question.crossword.grid.reduce((sum, rowCells) => sum + rowCells.filter(Boolean).length, 0);
+  const entries = question.crossword.entries || [];
   const inputs = $$(".cw-input", area);
+  let activeEntryIndex = -1;
+  const inputAt = (r, c) => inputs.find(input => Number(input.dataset.r) === r && Number(input.dataset.c) === c);
+  const moveFocus = (input, step) => {
+    const target = crosswordFocusTarget(entries, Number(input.dataset.r), Number(input.dataset.c), activeEntryIndex, step);
+    if (!target) return;
+    activeEntryIndex = target.entryIndex;
+    inputAt(target.row, target.col)?.focus();
+  };
   inputs.forEach(input => {
+    input.addEventListener("pointerdown", () => {
+      const r = Number(input.dataset.r), c = Number(input.dataset.c);
+      const indexes = crosswordEntryIndexesAtCell(entries, r, c);
+      if (document.activeElement === input && indexes.length > 1) {
+        const currentPosition = indexes.indexOf(activeEntryIndex);
+        activeEntryIndex = indexes[(currentPosition + 1) % indexes.length];
+      } else {
+        activeEntryIndex = chooseCrosswordEntryIndex(entries, r, c);
+      }
+    });
     input.addEventListener("input", () => {
       const letter = input.value.trim().slice(-1).toLocaleUpperCase("en");
       input.value = letter;
       if (letter) selectedAnswer[`${input.dataset.r},${input.dataset.c}`] = letter;
       else delete selectedAnswer[`${input.dataset.r},${input.dataset.c}`];
       $("#checkAnswer").disabled = Object.keys(selectedAnswer).length !== totalCells;
-      if (letter) { const next = inputs[inputs.indexOf(input) + 1]; if (next) next.focus(); }
+      if (letter) moveFocus(input, 1);
     });
     input.addEventListener("keydown", event => {
-      if (event.key === "Backspace" && !input.value) { const prev = inputs[inputs.indexOf(input) - 1]; if (prev) prev.focus(); }
+      if (event.key === "Backspace" && !input.value) moveFocus(input, -1);
     });
-    input.addEventListener("focus", () => input.select());
+    input.addEventListener("focus", () => {
+      activeEntryIndex = chooseCrosswordEntryIndex(entries, Number(input.dataset.r), Number(input.dataset.c), activeEntryIndex);
+      input.select();
+    });
   });
   $$(".cw-reveal", area).forEach(button => button.addEventListener("click", () => {
     const { r, c } = button.dataset;
@@ -1301,7 +1399,8 @@ function renderCrosswordGrid(question, crossword, disabled) {
   const clueList = dir => entries.filter(entry => entry.dir === dir).map(entry => `<li><b>${entry.number}.</b> ${escapeHtml(entry.clue || entry.answer)}</li>`).join("");
   const acrossHtml = clueList("across");
   const downHtml = clueList("down");
-  area.innerHTML = `<div class="crossword-builder ${disabled ? "disabled" : ""}"><div class="cw-grid" style="grid-template-columns: repeat(${cols}, 1fr)">${gridHtml}</div><div class="cw-clues">${acrossHtml ? `<div class="cw-clue-group"><h4>Poziomo</h4><ul>${acrossHtml}</ul></div>` : ""}${downHtml ? `<div class="cw-clue-group"><h4>Pionowo</h4><ul>${downHtml}</ul></div>` : ""}</div></div>`;
+  area.innerHTML = `${crosswordFullscreenControl()}<div class="crossword-builder ${disabled ? "disabled" : ""}"><div class="cw-grid" style="--cw-cols:${cols};grid-template-columns: repeat(${cols}, 1fr)">${gridHtml}</div><div class="cw-clues">${acrossHtml ? `<div class="cw-clue-group"><h4>Poziomo</h4><ul>${acrossHtml}</ul></div>` : ""}${downHtml ? `<div class="cw-clue-group"><h4>Pionowo</h4><ul>${downHtml}</ul></div>` : ""}</div></div>`;
+  bindCrosswordFullscreen(area);
   if (disabled) return;
   bindCrosswordInputs(question, area);
 }
@@ -2184,12 +2283,11 @@ function updateVerbTenseOptionStyle(input) {
 }
 
 function openVerbGenerator() {
-  $("#verbGeneratorModal").hidden = false;
-  setTimeout(() => $("#verbGeneratorVerbs").focus(), 0);
+  openAccessibleModal($("#verbGeneratorModal"), closeVerbGenerator, $("#verbGeneratorVerbs"));
 }
 
 function closeVerbGenerator() {
-  $("#verbGeneratorModal").hidden = true;
+  closeAccessibleModal($("#verbGeneratorModal"));
 }
 
 function generateVerbGeneratorCsv(event) {
@@ -2508,7 +2606,18 @@ $("#mobileMenuToggle").addEventListener("click", event => { event.stopPropagatio
 $("#mobileMenuClose").addEventListener("click", closeMobileMenu);
 $("#topbarTools").addEventListener("click", event => event.stopPropagation());
 document.addEventListener("click", closeMobileMenu);
-document.addEventListener("keydown", event => { if (event.key === "Escape") closeMobileMenu(); });
+document.addEventListener("keydown", event => {
+  if (handleModalKeydown(event)) return;
+  if (event.key === "Escape") {
+    const answerArea = $("#answerArea");
+    if (answerArea.classList.contains("crossword-fullscreen")) {
+      setCrosswordFullscreen(answerArea, false);
+      $(".cw-fullscreen-toggle", answerArea)?.focus();
+      return;
+    }
+    closeMobileMenu();
+  }
+});
 $("#cancelDailyWords").addEventListener("click", closeDailyWordsSettings);
 $("#restoreDailyWords").addEventListener("click", restoreDefaultDailyWords);
 $("#dailyWordsForm").addEventListener("submit", saveConfiguredDailyWords);

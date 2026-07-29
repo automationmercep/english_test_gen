@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#f7f4ec" />
     <title>Bright English — ucz się po swojemu</title>
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='32' fill='%2317251f'/%3E%3Ctext x='32' y='43' text-anchor='middle' font-family='serif' font-size='38' font-weight='700' fill='%23ddeb86'%3EB%3C/text%3E%3C/svg%3E" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Fraunces:opsz,wght@9..144,600;9..144,700&display=swap" rel="stylesheet" />
@@ -133,6 +134,7 @@
               <label class="url-label" for="quizImageUrl">lub wklej adres obrazka</label>
               <input id="quizImageUrl" class="image-url-input" type="url" placeholder="https://…" />
               <div class="image-search-row">
+                <label class="visually-hidden" for="imageSearchQuery">Szukaj zdjęcia</label>
                 <input id="imageSearchQuery" class="image-url-input" type="text" placeholder="Szukaj zdjęcia… np. dog, beach" autocomplete="off" />
                 <button type="button" id="imageSearchBtn" class="image-search-btn">🔍 Szukaj</button>
               </div>
@@ -154,6 +156,7 @@
                   <button type="button" id="importCsv" class="button button-outline">Wczytaj pytania</button>
                 </div>
               </div>
+              <label class="visually-hidden" for="csvInput">Pytania w formacie CSV</label>
               <textarea id="csvInput" class="csv-textarea" rows="5" spellcheck="false" placeholder="Kolory flagi Polski?, biały|czerwony, niebieski, zielony, choice&#10;[Complete the sentence] I ___ coffee every day., drink, fill&#10;Ułóż poprawne zdanie., I love you., order&#10;curious, ciekawy, fiszka&#10;brave, odważny, fiszka&#10;Dopasuj słowa., ruler=linijka, pencil case=piórnik, scissors=nożyczki, match&#10;She go to school every day., go, goes, correct&#10;Ułóż słowo z liter., elephant, anagram&#10;Znajdź zwierzęta w siatce., cat, dog, bird, fish, wordsearch&#10;Rozwiąż krzyżówkę., cat=A pet that meows, tiger=Big striped cat, rabbit=Hops and has long ears, crossword&#10;Odpowiedz na pytania., cat=A pet that meows, dog=A pet that barks, fish=Lives in water, quizcross&#10;Odgadnij hasło., KOT, milk=White drink, dog=A pet that barks, cat=A pet that meows, keycross"></textarea>
               <div class="csv-format"><span>1</span> pytanie / awers / zdanie z błędem <b>→</b> <span>2</span> poprawna odpowiedź / rewers / błędne słowo <b>→</b> <span>3–5</span> błędne (choice) / pary lewa=prawa (match) / poprawna forma (correct) <b>→</b> <span>ostatnie</span> choice / fill / order / fiszka / match / correct<button type="button" id="copyCsvFormat" class="copy-format-btn" title="Kopiuj przykład do schowka">📋 Kopiuj przykład</button></div>
             </section>

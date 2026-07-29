@@ -9,7 +9,10 @@ test.describe('Edycja istniejącego testu', () => {
     await page.goto('/');
 
     // 2. Reveal the card's tools and click its "✎ Edytuj" button
-    await page.getByRole('button', { name: 'Rozpocznij test Everyday' }).getByLabel('Edytuj test').click();
+    const everydayCard = page.locator('.quiz-card', {
+      has: page.getByRole('button', { name: 'Rozpocznij test Everyday' }),
+    });
+    await everydayCard.getByLabel('Edytuj test').click();
 
     // expect: the creator heading shows "Edytuj test"
     await expect(page.getByRole('heading', { name: 'Edytuj test' })).toBeVisible();

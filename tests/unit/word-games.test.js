@@ -14,6 +14,9 @@ const {
   buildQuizCrossword,
   buildKeyCrossword,
   checkCrosswordCell,
+  crosswordEntryIndexesAtCell,
+  chooseCrosswordEntryIndex,
+  crosswordFocusTarget,
 } = require("../../lib/pure-logic.js");
 
 // A small deterministic PRNG so crossword layout is stable across runs.
@@ -117,6 +120,39 @@ test("crosswordAnswerLetters uppercases and strips non-letters", () => {
   assert.equal(crosswordAnswerLetters("cat"), "CAT");
   assert.equal(crosswordAnswerLetters("ice-cream"), "ICECREAM");
   assert.equal(crosswordAnswerLetters(" Dog! "), "DOG");
+});
+
+test("crossword focus follows the active vertical answer instead of DOM row order", () => {
+  const entries = [
+    { dir: "down", cells: [[0, 0], [1, 0], [2, 0], [3, 0]] },
+    { dir: "down", cells: [[1, 3], [2, 3], [3, 3]] },
+    { dir: "across", cells: [[3, 0], [3, 1], [3, 2], [3, 3]] },
+  ];
+  assert.deepEqual(crosswordFocusTarget(entries, 1, 0, 0, 1), { entryIndex: 0, row: 2, col: 0 });
+  assert.deepEqual(crosswordFocusTarget(entries, 2, 0, 0, 1), { entryIndex: 0, row: 3, col: 0 });
+  assert.deepEqual(crosswordFocusTarget(entries, 2, 3, 1, -1), { entryIndex: 1, row: 1, col: 3 });
+});
+
+test("crossword focus preserves direction at crossings and defaults to across", () => {
+  const entries = [
+    { dir: "down", cells: [[0, 1], [1, 1], [2, 1]] },
+    { dir: "across", cells: [[1, 0], [1, 1], [1, 2]] },
+  ];
+  assert.deepEqual(crosswordEntryIndexesAtCell(entries, 1, 1), [0, 1]);
+  assert.equal(chooseCrosswordEntryIndex(entries, 1, 1, 0), 0);
+  assert.equal(chooseCrosswordEntryIndex(entries, 1, 1), 1);
+  assert.deepEqual(crosswordFocusTarget(entries, 1, 1, 0, 1), { entryIndex: 0, row: 2, col: 1 });
+  assert.deepEqual(crosswordFocusTarget(entries, 1, 1, 1, 1), { entryIndex: 1, row: 1, col: 2 });
+});
+
+test("crossword focus moves between consecutive answer rows at their boundaries", () => {
+  const entries = [
+    { dir: "across", cells: [[0, 0], [0, 1]] },
+    { dir: "across", cells: [[1, 2], [1, 3], [1, 4]] },
+  ];
+  assert.deepEqual(crosswordFocusTarget(entries, 0, 1, 0, 1), { entryIndex: 1, row: 1, col: 2 });
+  assert.deepEqual(crosswordFocusTarget(entries, 1, 2, 1, -1), { entryIndex: 0, row: 0, col: 1 });
+  assert.equal(crosswordFocusTarget(entries, 1, 4, 1, 1), null);
 });
 
 test("buildCrossword interlocks words on shared letters", () => {

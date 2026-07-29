@@ -3,6 +3,7 @@
 import { test, expect } from '@playwright/test';
 
 const PHONE = { width: 390, height: 844 };
+const NARROW_PHONE = { width: 375, height: 812 };
 const TABLET = { width: 768, height: 1024 };
 
 // A page should never scroll horizontally on a small screen; allow 1px for rounding.
@@ -116,5 +117,32 @@ test.describe('Responsywność na telefonie i tablecie', () => {
     expect(box!.y).toBeGreaterThanOrEqual(0);
     expect(box!.y + box!.height).toBeLessThanOrEqual(PHONE.height + 1);
     await expectNoHorizontalScroll(page);
+  });
+
+  test('Telefon: modal listy słówek mieści akcje i utrzymuje fokus', async ({ page }) => {
+    await page.setViewportSize(NARROW_PHONE);
+    await page.goto('/');
+
+    const opener = page.locator('#dailyWordsSettings');
+    await opener.click();
+    const modal = page.locator('#dailyWordsModal');
+    await expect(modal).toBeVisible();
+    await expect(page.locator('#dailyWordsInput')).toBeFocused();
+
+    const buttonBoxes = await page.locator('#dailyWordsForm button').evaluateAll(buttons => buttons.map(button => {
+      const box = button.getBoundingClientRect();
+      return { left: box.left, right: box.right };
+    }));
+    for (const box of buttonBoxes) {
+      expect(box.left, 'lewa krawędź przycisku musi być na ekranie').toBeGreaterThanOrEqual(0);
+      expect(box.right, 'prawa krawędź przycisku musi być na ekranie').toBeLessThanOrEqual(NARROW_PHONE.width + 1);
+    }
+
+    for (let index = 0; index < 5; index += 1) await page.keyboard.press('Tab');
+    await expect(page.locator('#dailyWordsInput')).toBeFocused();
+
+    await page.keyboard.press('Escape');
+    await expect(modal).toBeHidden();
+    await expect(opener).toBeFocused();
   });
 });
