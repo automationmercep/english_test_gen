@@ -42,3 +42,9 @@ seed.spec.ts (świeży stan, brak dodatkowej konfiguracji)
 5. Otwórz modal ustawień dźwięku (⚙ „Komunikaty") na tablecie.
    - Oczekiwane: modal `#soundMessagesModal` widoczny i mieści się w szerokości
      ekranu (prawa krawędź ≤ szerokość viewportu).
+
+6. Na telefonie 375×812 otwórz modal „Lista słówek”.
+   - Oczekiwane: wszystkie przyciski modalu mieszczą się w ekranie.
+   - Oczekiwane: klawisz Tab zapętla fokus wewnątrz modalu.
+   - Oczekiwane: Escape zamyka modal i przywraca fokus na przycisku, który go
+     otworzył.

@@ -74,7 +74,7 @@ Ten plan testów E2E celowo NIE powtarza scenariuszy już pokrytych istniejącym
 
 **Seed:** `seed.spec.ts`
 
-#### 2.1. Przełączanie dźwięków efektów on/off zapisuje się w localStorage
+#### 2.1. Przełączanie dźwięków efektów on/off nie jest utrwalane
 
 **File:** `tests/sound-settings.spec.ts`
 
@@ -84,7 +84,7 @@ Ten plan testów E2E celowo NIE powtarza scenariuszy już pokrytych istniejącym
   2. Kliknij przycisk „Dźwięk”.
     - expect: Etykieta przycisku zmienia się na „Włącz dźwięki” (dźwięk wyłączony).
   3. Odśwież stronę (reload).
-    - expect: Stan wyłączonego dźwięku jest zachowany po odświeżeniu (odczytany z localStorage).
+    - expect: Po odświeżeniu dźwięk wraca do stanu domyślnego; przełącznik nie jest utrwalany.
 
 #### 2.2. Przełączanie muzyki w tle on/off zapisuje się w localStorage
 
@@ -120,7 +120,7 @@ Ten plan testów E2E celowo NIE powtarza scenariuszy już pokrytych istniejącym
   2. Rozpocznij dowolny test z pytaniem typu wybór i udziel odpowiedzi, klikając „Sprawdź odpowiedź”.
     - expect: Po sprawdzeniu odpowiedzi NIE pojawia się licznik/countdown „Następne pytanie za X s” — przejście do kolejnego pytania wymaga ręcznego kliknięcia przycisku „Następne pytanie”.
 
-#### 2.5. Włączenie licznika czasu na pytanie powoduje automatyczne oznaczenie jako błędne po upływie czasu
+#### 2.5. Włączenie licznika czasu pokazuje odliczanie bez automatycznego oceniania
 
 **File:** `tests/sound-settings.spec.ts`
 
@@ -129,7 +129,7 @@ Ten plan testów E2E celowo NIE powtarza scenariuszy już pokrytych istniejącym
     - expect: Ustawienie zostaje zapisane.
   2. Rozpocznij dowolny test i na pierwszym pytaniu nie udzielaj odpowiedzi — poczekaj, aż widoczny licznik czasu dobiegnie do zera.
     - expect: Widoczny jest wizualny licznik/pasek czasu odliczający w dół.
-    - expect: Po upływie ustawionego czasu pytanie jest automatycznie oznaczone jako błędne (bez interakcji użytkownika) i aplikacja przechodzi dalej lub pokazuje informację o błędnej odpowiedzi.
+    - expect: Po upływie ustawionego czasu licznik znika, ale pytanie nie jest automatycznie oceniane ani pomijane.
   3. Po teście przywróć „Czas na pytanie” do 0, aby nie wpływać na kolejne testy.
     - expect: Licznik czasu jest wyłączony dla kolejnych testów.
 
@@ -336,15 +336,15 @@ Ten plan testów E2E celowo NIE powtarza scenariuszy już pokrytych istniejącym
   4. Kliknij „Sprawdź odpowiedź”.
     - expect: Wynik pytania jest oznaczony jako poprawny (100%), ponieważ wszystkie odkryte litery pochodzą z prawidłowego rozwiązania.
 
-#### 7.2. Odkryta litera nie może być nadpisana błędną wartością
+#### 7.2. Odkryta litera pozostaje edytowalną podpowiedzią
 
 **File:** `tests/crossword-reveal-letter.spec.ts`
 
 **Steps:**
   1. Rozpocznij test z pytaniem typu „Krzyżówka” i kliknij „?” na jednej komórce, aby odkryć jej literę.
-    - expect: Komórka jest wypełniona poprawną literą, a pole input tej komórki jest disabled (zgodnie z zachowaniem odkrytych/zablokowanych pól).
+    - expect: Komórka jest wypełniona poprawną literą, ale pole pozostaje edytowalne.
   2. Spróbuj kliknąć na zablokowane pole input odkrytej komórki i wpisać inną literę.
-    - expect: Nie da się zmienić wartości zablokowanej komórki — pole ignoruje próbę edycji, wartość pozostaje niezmieniona.
+    - expect: Wartość można zmienić; odkrycie litery jest podpowiedzią, nie blokadą pola.
 
 ### 8. Walidacja formularza kreatora testu
 

@@ -8,7 +8,9 @@ test.describe('Usuwanie testu', () => {
     await page.goto('http://127.0.0.1:8000/');
 
     // 1. On the home page, find the quiz card titled "Travel Essentials" and click its "Usuń" button.
-    const travelCard = page.getByRole('button', { name: 'Rozpocznij test Travel Essentials' });
+    const travelCard = page.locator('.quiz-card', {
+      has: page.getByRole('button', { name: 'Rozpocznij test Travel Essentials' }),
+    });
     await expect(travelCard).toBeVisible();
     page.once('dialog', dialog => dialog.accept());
     await travelCard.getByLabel('Usuń test').click();

@@ -126,7 +126,9 @@ const CROSSWORD_CSV = 'Rozwiąż krzyżówkę., cat=meows, tiger=striped cat, ra
 
 async function setupCrossword(page: Page, title: string) {
   await page.goto('/');
-  await page.locator('.nav-link[data-view="create"]').click();
+  const createLink = page.locator('.nav-link[data-view="create"]');
+  if (await createLink.isVisible()) await createLink.click();
+  else await page.getByRole('button', { name: 'Nowy test' }).click();
   await page.locator('#quizTitle').fill(title);
   await page.locator('#csvInput').fill(CROSSWORD_CSV);
   await page.locator('#importCsv').click();
@@ -152,7 +154,107 @@ async function crosswordSolution(page: Page): Promise<[number, number, string][]
   });
 }
 
+async function focusedCrosswordCell(page: Page): Promise<[number, number]> {
+  return page.locator('.cw-input:focus').evaluate(input => [
+    Number((input as HTMLInputElement).dataset.r),
+    Number((input as HTMLInputElement).dataset.c),
+  ] as [number, number]);
+}
+
+async function crosswordFocusCases(page: Page) {
+  return page.evaluate(() => {
+    // @ts-expect-error - app.js globals
+    const entries = activeQuiz.questions[questionIndex].crossword.entries;
+    const uses = (row: number, col: number) => entries.filter((entry: any) =>
+      entry.cells.some(([r, c]: [number, number]) => r === row && c === col));
+    let vertical = null;
+    for (let entryIndex = 0; entryIndex < entries.length && !vertical; entryIndex++) {
+      const entry = entries[entryIndex];
+      if (entry.dir !== 'down') continue;
+      for (let i = 0; i < entry.cells.length - 1; i++) {
+        const [row, col] = entry.cells[i];
+        if (uses(row, col).length === 1) {
+          vertical = { current: entry.cells[i], next: entry.cells[i + 1] };
+          break;
+        }
+      }
+    }
+    let crossing = null;
+    for (const down of entries.filter((entry: any) => entry.dir === 'down')) {
+      for (const across of entries.filter((entry: any) => entry.dir === 'across')) {
+        const downCellIndex = down.cells.findIndex(([r, c]: [number, number]) =>
+          across.cells.some(([ar, ac]: [number, number]) => ar === r && ac === c));
+        if (downCellIndex <= 0) continue;
+        const [row, col] = down.cells[downCellIndex];
+        const acrossCellIndex = across.cells.findIndex(([r, c]: [number, number]) => r === row && c === col);
+        if (acrossCellIndex > 0) {
+          crossing = {
+            cell: [row, col],
+            acrossPrevious: across.cells[acrossCellIndex - 1],
+            downPrevious: down.cells[downCellIndex - 1],
+          };
+          break;
+        }
+      }
+      if (crossing) break;
+    }
+    return { vertical, crossing };
+  });
+}
+
 test.describe('Rozgrywka krzyżówki', () => {
+  test('Fokus podąża za pionowym hasłem i poprawnie wybiera kierunek na skrzyżowaniu', async ({ page }) => {
+    await setupCrossword(page, 'Krzyżówka — fokus');
+    const cases = await crosswordFocusCases(page);
+    expect(cases.vertical).not.toBeNull();
+    expect(cases.crossing).not.toBeNull();
+
+    const vertical = cases.vertical!;
+    const current = page.locator(`.cw-input[data-r="${vertical.current[0]}"][data-c="${vertical.current[1]}"]`);
+    await current.click();
+    await current.fill('X');
+    expect(await focusedCrosswordCell(page)).toEqual(vertical.next);
+
+    const crossing = cases.crossing!;
+    const crossingInput = page.locator(`.cw-input[data-r="${crossing.cell[0]}"][data-c="${crossing.cell[1]}"]`);
+    await current.click();
+    await crossingInput.click();
+    await crossingInput.press('Backspace');
+    expect(await focusedCrosswordCell(page)).toEqual(crossing.acrossPrevious);
+
+    await current.click();
+    await crossingInput.click();
+    await crossingInput.click();
+    await crossingInput.press('Backspace');
+    expect(await focusedCrosswordCell(page)).toEqual(crossing.downPrevious);
+  });
+
+  test('Fokus i pełny ekran działają dotykowo w widoku mobilnym', async ({ browser }) => {
+    const context = await browser.newContext({ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true });
+    const page = await context.newPage();
+    try {
+      await setupCrossword(page, 'Krzyżówka — mobile');
+      await page.getByRole('button', { name: 'Pełny ekran' }).tap();
+      await expect(page.locator('#answerArea')).toHaveClass(/crossword-fullscreen/);
+      const box = await page.locator('#answerArea').boundingBox();
+      expect(box?.width).toBe(390);
+      expect(box?.height).toBe(844);
+
+      const cases = await crosswordFocusCases(page);
+      expect(cases.vertical).not.toBeNull();
+      const vertical = cases.vertical!;
+      const current = page.locator(`.cw-input[data-r="${vertical.current[0]}"][data-c="${vertical.current[1]}"]`);
+      await current.tap();
+      await current.fill('X');
+      expect(await focusedCrosswordCell(page)).toEqual(vertical.next);
+
+      await page.getByRole('button', { name: 'Zamknij pełny ekran' }).tap();
+      await expect(page.locator('#answerArea')).not.toHaveClass(/crossword-fullscreen/);
+    } finally {
+      await context.close();
+    }
+  });
+
   test('Poprawnie wypełniona krzyżówka jest zaliczana', async ({ page }) => {
     await setupCrossword(page, 'Krzyżówka — poprawnie');
 
@@ -208,6 +310,22 @@ async function setupQuizCross(page: Page, title: string) {
 }
 
 test.describe('Rozgrywka krzyżówki z pytaniami', () => {
+  test('Fokus przechodzi do kolejnej kratki, następnego hasła i działa w pełnym ekranie', async ({ page }) => {
+    await setupQuizCross(page, 'Krzyżówka pytania — fokus');
+    await page.getByRole('button', { name: 'Pełny ekran' }).click();
+    await expect(page.locator('#answerArea')).toHaveClass(/crossword-fullscreen/);
+
+    const first = page.locator('.cw-input[data-r="0"]').first();
+    await first.fill('C');
+    expect(await focusedCrosswordCell(page)).toEqual([0, 1]);
+    const lastInRow = page.locator('.cw-input[data-r="0"]').last();
+    await lastInRow.fill('T');
+    expect(await focusedCrosswordCell(page)).toEqual([1, 0]);
+
+    await page.keyboard.press('Escape');
+    await expect(page.locator('#answerArea')).not.toHaveClass(/crossword-fullscreen/);
+  });
+
   test('Poprawne odpowiedzi na wszystkie pytania są zaliczane', async ({ page }) => {
     await setupQuizCross(page, 'Krzyżówka pytania — poprawnie');
 
@@ -260,6 +378,26 @@ async function setupKeyCross(page: Page, title: string) {
 }
 
 test.describe('Rozgrywka krzyżówki z hasłem', () => {
+  test('Fokus pomija puste komórki i działa w pełnym ekranie', async ({ page }) => {
+    await setupKeyCross(page, 'Krzyżówka hasło — fokus');
+    await page.getByRole('button', { name: 'Pełny ekran' }).click();
+    await expect(page.locator('#answerArea')).toHaveClass(/crossword-fullscreen/);
+
+    const entries = await page.evaluate(() => {
+      // @ts-expect-error - app.js globals
+      return activeQuiz.questions[questionIndex].crossword.entries.map((entry: any) => entry.cells);
+    });
+    const first = page.locator(`.cw-input[data-r="${entries[0][0][0]}"][data-c="${entries[0][0][1]}"]`);
+    await first.fill('M');
+    expect(await focusedCrosswordCell(page)).toEqual(entries[0][1]);
+    const last = entries[0][entries[0].length - 1];
+    await page.locator(`.cw-input[data-r="${last[0]}"][data-c="${last[1]}"]`).fill('K');
+    expect(await focusedCrosswordCell(page)).toEqual(entries[1][0]);
+
+    await page.getByRole('button', { name: 'Zamknij pełny ekran' }).click();
+    await expect(page.locator('#answerArea')).not.toHaveClass(/crossword-fullscreen/);
+  });
+
   test('Poprawnie wpisane hasła są zaliczane, a klucz jest podświetlony', async ({ page }) => {
     await setupKeyCross(page, 'Krzyżówka hasło — poprawnie');
 

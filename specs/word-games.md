@@ -74,6 +74,20 @@ Wspólne kroki przygotowania:
 **Expected:**
 - Informacja zwrotna ma stan „bad", a wszystkie kratki są oznaczone jako błędne
 
+#### 2.3 Fokus, skrzyżowania i pełny ekran działają także mobilnie
+**Steps:**
+1. Wpisz literę w kratce należącej do pionowego hasła
+2. Kliknij skrzyżowanie i naciśnij Backspace w pustej kratce
+3. Kliknij skrzyżowanie ponownie, aby przełączyć kierunek, i ponownie naciśnij Backspace
+4. W mobilnym widoku 390×844 dotknij przycisku „Pełny ekran", a następnie wpisz literę z klawiatury ekranowej
+5. Zamknij pełny ekran przyciskiem
+
+**Expected:**
+- Po wpisaniu litery fokus przechodzi do następnej kratki tego samego pionowego hasła, a nie do następnego pola w kolejności HTML
+- Pierwsze kliknięcie skrzyżowania wybiera hasło poziome, a ponowne kliknięcie przełącza kierunek na pionowy
+- Krzyżówka zajmuje cały ekran urządzenia; dotyk i automatyczne przejście fokusu nadal działają
+- Przycisk zamykania przywraca zwykły widok
+
 ### 3. Rozgrywka krzyżówki z pytaniami (quizcross)
 
 **Seed:** `seed.spec.ts`
@@ -97,6 +111,12 @@ Wspólne kroki przygotowania: jak wyżej (import CSV, zapis, start).
 **Expected:**
 - Po wpisaniu błędnych liter informacja zwrotna ma stan „bad", a wszystkie kratki są oznaczone jako błędne
 
+#### 3.3 Fokus i pełny ekran
+**Expected:**
+- Po każdej literze fokus przechodzi do kolejnej kratki bieżącego hasła
+- Po ostatniej literze w rzędzie fokus przechodzi do pierwszej kratki następnego pytania
+- Przycisk „Pełny ekran" otwiera powiększony widok, który można zamknąć klawiszem Escape
+
 ### 4. Rozgrywka krzyżówki z hasłem (keycross)
 
 **Seed:** `seed.spec.ts`
@@ -119,3 +139,9 @@ Wspólne kroki przygotowania: jak wyżej (import CSV, zapis, start).
 #### 4.2 Błędne odpowiedzi są odrzucane
 **Expected:**
 - Po wpisaniu błędnych liter informacja zwrotna ma stan „bad", a wszystkie kratki są oznaczone jako błędne
+
+#### 4.3 Fokus i pełny ekran
+**Expected:**
+- Po każdej literze fokus przechodzi do następnej faktycznej kratki hasła, pomijając puste komórki wyrównujące wiersze
+- Po ostatniej literze hasła fokus przechodzi do pierwszej kratki następnego wiersza
+- Przycisk „Pełny ekran" działa także dla krzyżówki z hasłem i pozwala wrócić do zwykłego widoku

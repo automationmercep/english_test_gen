@@ -55,7 +55,9 @@ test.describe('Eksport, import i scalanie danych', () => {
     await page.getByRole('button', { name: 'Zapisz test →' }).click();
 
     // expect: Test „Import Test A” pojawia się na liście testów.
-    const importTestACard = page.getByRole('button', { name: 'Rozpocznij test Import Test A' });
+    const importTestACard = page.locator('.quiz-card', {
+      has: page.getByRole('button', { name: 'Rozpocznij test Import Test A' }),
+    });
     await expect(importTestACard).toBeVisible();
     await page.getByRole('tab', { name: 'Wszystkie, testów:' }).click();
 
@@ -95,7 +97,10 @@ test.describe('Eksport, import i scalanie danych', () => {
 
     // Sprzątanie: usuń "Import Test A" z biblioteki na końcu testu.
     page.once('dialog', dialog => dialog.accept());
-    await page.getByRole('button', { name: 'Rozpocznij test Import Test A' }).getByLabel('Usuń test').click();
+    const restoredImportCard = page.locator('.quiz-card', {
+      has: page.getByRole('button', { name: 'Rozpocznij test Import Test A' }),
+    });
+    await restoredImportCard.getByLabel('Usuń test').click();
     await expect(page.getByRole('button', { name: 'Rozpocznij test Import Test A' })).not.toBeVisible();
   });
 
@@ -121,7 +126,9 @@ test.describe('Eksport, import i scalanie danych', () => {
     await page.getByRole('article').filter({ hasText: 'Pytanie 2' }).getByLabel('Usuń pytanie').click();
     await page.getByRole('button', { name: 'Zapisz test →' }).click();
 
-    const mergeTestBCard = page.getByRole('button', { name: 'Rozpocznij test Merge Test B' });
+    const mergeTestBCard = page.locator('.quiz-card', {
+      has: page.getByRole('button', { name: 'Rozpocznij test Merge Test B' }),
+    });
     await expect(mergeTestBCard).toBeVisible();
     await page.getByRole('tab', { name: 'Wszystkie, testów:' }).click();
 

@@ -42,7 +42,9 @@ test.describe('Różne typy pytań w kreatorze', () => {
     // Expected
     await expect(page.locator('#homeView')).toHaveClass(/active/);
     await expect(page.locator('#toast')).toHaveText('Test zapisany — możesz zaczynać!');
-    const savedCard = page.getByRole('button', { name: 'Rozpocznij test Test mieszanych typów' });
+    const savedCard = page.locator('.quiz-card', {
+      has: page.getByRole('button', { name: 'Rozpocznij test Test mieszanych typów' }),
+    });
     await expect(savedCard).toBeVisible();
     await expect(savedCard.locator('p', { hasText: 'pytań' })).toHaveText('3 pytań');
   });

@@ -77,7 +77,9 @@ test.describe('Tworzenie gier słownych w kreatorze', () => {
     await page.getByRole('button', { name: 'Zapisz test →' }).click();
     await expect(page.locator('#homeView')).toHaveClass(/active/);
     await expect(page.locator('#toast')).toHaveText('Test zapisany — możesz zaczynać!');
-    const savedCard = page.getByRole('button', { name: 'Rozpocznij test Gry słowne — kreator' });
+    const savedCard = page.locator('.quiz-card', {
+      has: page.getByRole('button', { name: 'Rozpocznij test Gry słowne — kreator' }),
+    });
     await expect(savedCard).toBeVisible();
     await expect(savedCard.locator('p', { hasText: 'pytań' })).toHaveText('5 pytań');
 
