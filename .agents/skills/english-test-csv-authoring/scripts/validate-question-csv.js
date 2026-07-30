@@ -237,6 +237,9 @@ function validateCsvText(csvText, options = {}) {
     }
 
     if (type === "cloze") {
+      if (clozeGapAnswers(prompt).length > 0) {
+        error(lineNumber, "Pole pytania cloze ujawnia odpowiedzi w nawiasach [ ]; odpowiedzi mogą występować tylko w drugim polu CSV.");
+      }
       if (rest.length !== 1) {
         error(lineNumber, "Tekst cloze musi być jednym polem CSV; otocz go cudzysłowem, jeśli zawiera przecinki.");
         continue;

@@ -24,8 +24,10 @@ Typy pytań i ile każdego: [np. 8x correct, 6x fill, 6x choice — dostępne ty
 1. Jeden wiersz = jedno pytanie. Bez nagłówka, bez numeracji, bez markdown, bez komentarzy.
 2. Ostatnie pole każdego wiersza to token typu (po angielsku): correct / fill / choice / cloze / order / match / flashcard / anagram / wordsearch / crossword / quizcross / keycross.
 3. Pola oddzielaj przecinkami. Jeśli w treści pytania jest przecinek, otocz całe pole cudzysłowem: "zdanie, z przecinkiem".
-4. Słowa z listy są TEMATEM zdań (czynność/podmiot), NIGDY nie są opcjami do wyboru.
-5. Każde słowo z listy wykorzystaj co najmniej raz. Możesz je odmieniać gramatycznie (walk → walks).
+4. Każde wymagane słowo wykorzystaj co najmniej raz w znaczącym kontekście: w treści pytania albo poprawnej odpowiedzi, nie tylko w poleceniu lub błędnym dystraktorze. Możesz je odmieniać gramatycznie (walk → walks).
+5. Zachowaj dokładnie podaną liczbę twierdzeń, pytań i przeczeń. Forma zdania jest niezależna od typu CSV.
+6. Pisz naturalnym, idiomatycznym angielskim odpowiednim dla wskazanego poziomu CEFR. Unikaj sztucznych kontekstów, tłumaczeń słowo w słowo i niezgrabnych powtórzeń.
+7. Opcjonalnie rozpocznij pierwsze pole od `[Polskie polecenie]`, np. `[Wpisz formę czasownika „do”] Elena ___ her homework.`. Tekst w nawiasach pojawi się nad pytaniem.
 
 === FORMATY TYPÓW ===
 
@@ -36,8 +38,10 @@ correct — zdanie zawierające DOKŁADNIE JEDEN błąd gramatyczny. Uczeń znaj
 
 fill — zdanie z LUKĄ oznaczoną trzema podkreśleniami "___" w miejscu brakującego słowa.
   Format: zdanie z ___ , poprawna_odpowiedź, fill
-  KRYTYCZNE: zdanie MUSI zawierać "___". Odpowiedź to słowo pasujące w lukę.
-  Przykład: We don't ___ to music in the library.,listen,fill
+  KRYTYCZNE: zdanie MUSI zawierać "___" i dopuszczać tylko jedną zwyczajną odpowiedź.
+  Jeżeli sprawdzasz odmianę, podaj czasownik bazowy lub konstrukcję w prefiksie `[Polecenie]`.
+  ŹLE: Elena ___ her homework after school.,does,fill  (pasuje też completes/finishes)
+  DOBRZE: [Wpisz formę czasownika „do”] Elena ___ her homework after school.,does,fill
 
 cloze — dłuższy tekst z KILKOMA lukami. Słowa do ukrycia otocz nawiasami [słowo].
   Każdy fragment [...] staje się luką; uczeń wpisuje brakujące słowa w tekście.
@@ -46,6 +50,9 @@ cloze — dłuższy tekst z KILKOMA lukami. Słowa do ukrycia otocz nawiasami [s
   zawiera), otocz to pole cudzysłowem. Użyj 2–5 luk w spójnym, powiązanym tekście.
   KRYTYCZNE: każda luka musi być JEDNOZNACZNIE odgadywalna z kontekstu (kolokacja,
   definicja lub gramatyka) — NIE ukrywaj słów zależnych od gustu/opinii.
+  KRYTYCZNE: pierwsze pole jest widocznym tytułem. NIGDY nie umieszczaj w nim tekstu
+  z `[odpowiedziami]` ani kompletnego zdania ujawniającego luki. Odpowiedzi w nawiasach
+  kwadratowych mogą wystąpić wyłącznie w drugim polu CSV.
   ŹLE:  "My favourite subject is [Music]."   (ulubiony przedmiot to opinia — nie da się odgadnąć)
   DOBRZE: "In [Music] we sing and play instruments."   (definicja wskazuje odpowiedź)
   Przykład: Uzupełnij tekst.,"I [go] to school every day. At school I [study] English. After class my friends [play] football.",cloze
@@ -55,7 +62,7 @@ choice — pytanie z DOKŁADNIE 4 opcjami (1 poprawna + 3 błędne). Opcje to R�
   tego samego rodzaju (np. same formy czasownika ALBO same Do/Does/Is/Are — nie mieszaj).
   Pierwsza opcja = poprawna.
   Format: pytanie, poprawna, błędna1, błędna2, błędna3, choice
-  Przykład: He ___ English on weekends.,studies,study,studying,studied,choice
+  Przykład: He ___ English on weekends.,studies,study,studying,studys,choice
   Przykład: ___ she interested in pottery?,Is,Are,Do,Does,choice
 
 choice (kilka poprawnych) — kilka poprawnych odpowiedzi rozdziel znakiem "|" w drugim polu.
@@ -69,6 +76,9 @@ order — układanie pomieszanych słów w poprawne zdanie.
 
 match — łączenie par (lewa=prawa), minimum dwie pary.
   Format: polecenie, lewa1=prawa1, lewa2=prawa2, lewa3=prawa3, match
+  KRYTYCZNE: każda para musi wynikać z wiedzy zawartej w zadaniu albo z jednoznacznej
+  relacji (np. słowo–tłumaczenie). Nie każ dopasowywać osób do dowolnych czynności bez
+  tekstu źródłowego. Sama zgodność `plays`/`play` nie rozstrzyga dwóch osób w liczbie pojedynczej.
   Przykład: Dopasuj słowo do tłumaczenia.,walk=spacerować,study=uczyć się,watch=oglądać,match
 
 flashcard — odwracana karta: awers (słowo/pytanie) i rewers (tłumaczenie/odpowiedź).
@@ -105,6 +115,13 @@ Aplikacja zalicza tylko JEDNĄ poprawną odpowiedź / jedno poprawne słowo. Zan
 zapiszesz pytanie, sprawdź, czy nie istnieje DRUGA odpowiedź poprawna gramatycznie.
 Jeśli istnieje — przerób pytanie tak, by poprawna była tylko jedna.
 
+- fill/cloze: rozwiąż każdą lukę bez zaglądania do klucza. Jeżeli pasuje inne zwyczajne
+  słowo lub forma, dodaj rozstrzygający kontekst albo podaj czasownik bazowy/konstrukcję.
+
+- match: spróbuj zamienić miejscami każde dwie prawe odpowiedzi. Jeżeli po zamianie
+  dopasowanie nadal jest logiczne lub gramatycznie możliwe, dodaj tekst źródłowy albo
+  zmień pary na relacje o jednym obiektywnie poprawnym przyporządkowaniu.
+
 - choice: żaden z 3 dystraktorów nie może tworzyć poprawnego zdania. Uwaga na CZAS:
   określenia typu "every day / every Saturday / every evening" pasują i do Present
   Simple, i do Past Simple — więc forma przeszła (studied, did) jako dystraktor jest
@@ -121,6 +138,13 @@ Jeśli istnieje — przerób pytanie tak, by poprawna była tylko jedna.
   ŹLE:  Is your friends always noisy?,Is,Are,correct   (można też friends→friend)
   DOBRZE: Are your parents always noisy? -> zapisz jako: Is your parents always noisy?,Is,Are,correct
 
+=== NATURALNOŚĆ I KONTROLA KOŃCOWA ===
+1. Odtwórz dokładnie ekran ucznia. Sprawdź, czy treść nie pokazuje odpowiedzi, szczególnie w `cloze`.
+2. Rozwiąż każde pytanie bez korzystania z klucza i odrzuć każde z więcej niż jedną rozsądną odpowiedzią.
+3. Wstaw poprawną odpowiedź i przeczytaj całe zdanie na głos. Sprawdź naturalne kolokacje,
+   odniesienia zaimków, szyk i sens. Popraw zdania gramatyczne, ale sztuczne lub powtarzalne.
+4. Sprawdź dokładne liczby typów i form zdań oraz użycie wszystkich wymaganych słów.
+
 === WYNIK ===
 Zwróć WYŁĄCZNIE surowe wiersze CSV, każdy w osobnej linii, gotowe do skopiowania.
 Nie dodawaj żadnego tekstu przed ani po.
@@ -133,9 +157,12 @@ wierszach, najczęściej:
 
 - **`fill` bez luki** — zdanie kompletne, brak `___` (aplikacja pokaże pełne zdanie i puste pole).
 - **`cloze` bez nawiasów** — tekst bez żadnego `[słowo]` (aplikacja pominie wiersz), albo luka nieodgadywalna z kontekstu (opinia/gust) — uczeń nie ma jak trafić. Sprawdź też, czy pole z tekstem jest w cudzysłowach, jeśli ma przecinki.
+- **`cloze` ujawniający odpowiedzi** — pierwsze pole zawiera skopiowany tekst z `[odpowiedziami]`; pierwsze pole ma być tylko krótkim poleceniem lub tytułem.
 - **`choice` z losowymi słowami** zamiast form gramatycznych, albo z liczbą opcji inną niż 4.
 - **`correct` z błędnym słowem, którego nie ma dosłownie w zdaniu** — taki wiersz aplikacja pomija przy imporcie.
 - **dwuznaczność** — druga opcja w `choice` też poprawna, albo błąd w `correct` da się naprawić na dwa sposoby (patrz sekcja „JEDNOZNACZNOŚĆ"). Aplikacja zaliczy tylko jedną odpowiedź, więc druga poprawna = uczeń dostaje „źle" mimo dobrej gramatyki.
+- **nienaturalne zdanie** — konstrukcja jest gramatyczna, ale brzmi sztucznie, powtarza to samo słowo lub nie pasuje do poziomu ucznia.
+- **niejednoznaczny `match`** — kilka kafelków można logicznie przypisać do tego samego pola, bo brakuje tekstu źródłowego lub obiektywnej relacji.
 
 Aplikacja i tak pomija nieprawidłowe wiersze i podsumowuje, ile pominęła, ale
 najlepiej poprawić je od razu. Po imporcie każde pytanie można też ręcznie edytować.
@@ -146,24 +173,24 @@ Wygenerowany tym promptem (Present Simple, słowa: listen, walk, study, watch,
 karate, pottery, football), po weryfikacji — wszystkie 20 wierszy przechodzą import:
 
 ```csv
-She walk to school every morning.,walk,walks,correct
-He don't listen to music after school.,don't,doesn't,correct
-Does she watches TV in the evening?,watches,watch,correct
-They is interested in football.,is,are,correct
-My brother study English every day.,study,studies,correct
-We doesn't play football on Mondays.,doesn't,don't,correct
-Do Tom walk to school every day?,Do,Does,correct
-She don't do karate at school.,don't,doesn't,correct
-I ___ to music every evening.,listen,fill
-He ___ to school with his sister.,walks,fill
-We don't ___ TV in the morning.,watch,fill
-___ she study English every day?,Does,fill
-They ___ interested in pottery.,are,fill
-My sister doesn't ___ football.,play,fill
-He ___ English after school.,studies,study,studying,studied,choice
-___ they listen to music every day?,Do,Does,Is,Are,choice
+These students walks to school every morning.,walks,walk,correct
+Emma don't listen to music after school because she prefers silence.,don't,doesn't,correct
+Amy watch TV in the evening and she talks about the programmes at school.,watch,watches,correct
+Both Tom and Lucas is interested in football.,is,are,correct
+My two brothers studies English every day.,studies,study,correct
+We doesn't play football because neither of us likes it.,doesn't,don't,correct
+Both Tom and his sister walks to school together.,walks,walk,correct
+Elena don't do karate because she prefers swimming.,don't,doesn't,correct
+[Wpisz formę czasownika „listen”] I ___ to music every evening.,listen,fill
+[Wpisz formę czasownika „walk”] He ___ to school with his sister.,walks,fill
+[Wpisz formę czasownika „watch”] We don't ___ TV in the morning.,watch,fill
+[Wpisz formę czasownika „study”] Amy ___ English every day.,studies,fill
+[Wpisz formę „to be”] They ___ interested in pottery.,are,fill
+[Wpisz formę czasownika „play”] My sister doesn't ___ football.,play,fill
+He ___ English after school.,studies,study,studying,studys,choice
+My friends ___ to music every day.,listen,listens,listening,is listen,choice
 She ___ walk to school on Sundays.,doesn't,don't,isn't,aren't,choice
-___ he interested in karate?,Is,Are,Do,Does,choice
-We ___ football after school.,play,plays,playing,played,choice
-___ your friends study English at school?,Do,Does,Is,Are,choice
+He ___ interested in karate.,is,are,do,does,choice
+We ___ football after school.,play,plays,playing,is play,choice
+Your friends ___ English at school.,study,studies,studying,studys,choice
 ```
