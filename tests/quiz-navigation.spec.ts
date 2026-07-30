@@ -32,6 +32,26 @@ async function answerCurrent(page: Page): Promise<{ kind: 'choice' | 'fill'; val
 }
 
 test.describe('Nawigacja w trakcie rozwiązywania testu', () => {
+  test('można pominąć pytania bez udzielania odpowiedzi', async ({ page }) => {
+    await openEverydayEnglish(page);
+
+    const skipQuestion = page.locator('#skipQuestion');
+    await expect(skipQuestion).toBeVisible();
+    await expect(skipQuestion).toBeEnabled();
+    await skipQuestion.click();
+    await expect(page.locator('#progressText')).toHaveText('2 / 6');
+
+    for (let question = 2; question <= 6; question++) {
+      await skipQuestion.click();
+    }
+
+    await expect(page.locator('#resultsView')).toHaveClass(/active/);
+    await expect(page.locator('#scorePercent')).toHaveText('0%');
+    await expect(page.locator('#wrongCount')).toHaveText('6');
+    await expect(page.locator('.review-item')).toHaveCount(6);
+    await expect(page.getByText('Pominięto bez odpowiedzi')).toHaveCount(6);
+  });
+
   test('„Poprzednie pytanie” zachowuje udzieloną odpowiedź i stan sprawdzenia', async ({ page }) => {
     await openEverydayEnglish(page);
 

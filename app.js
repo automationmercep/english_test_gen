@@ -120,6 +120,7 @@ let customCategories = loadCategories();
 window.__onCloudQuizzesLoaded = function(cloudQuizzes) {
   if (cloudQuizzes && cloudQuizzes.length > 0) {
     quizzes = cloudQuizzes.map(function(q) { var savedAt = q.savedAt; var rest = Object.assign({}, q); delete rest.savedAt; return rest; });
+    saveQuizzes();
     customCategories = loadCategories();
     renderQuizGrid();
     showToast("Testy załadowane z chmury ☁");
@@ -1073,6 +1074,7 @@ function renderQuestion() {
   }
   const savedResult = results[questionIndex];
   $("#previousQuestion").disabled = questionIndex === 0;
+  $("#skipQuestion").hidden = Boolean(savedResult);
   const check = $("#checkAnswer"); check.hidden = false; check.textContent = question.type === "flashcard" ? "Pokaż odpowiedź" : "Sprawdź odpowiedź"; check.disabled = question.type !== "flashcard";
   if (savedResult) restoreCheckedQuestion(question, savedResult);
   else startQuestionTimer();
@@ -1498,6 +1500,33 @@ function goToPreviousQuestion() {
   renderQuestion();
 }
 
+function getQuestionCorrectText(question) {
+  if (question.type === "choice") return getCorrectIndexes(question).map(index => question.answers[index]).join(", ");
+  if (question.type === "match") return question.pairs.map(pair => `${pair.left} → ${pair.right}`).join(", ");
+  if (question.type === "correct") return `${correctTokens(question.prompt)[correctWrongIndex(question)] || question.wrong} → ${acceptedAnswers(question.answer)[0] || ""}`;
+  if (question.type === "wordsearch") return question.grid.words.join(", ");
+  if (question.type === "keycross") return `Hasło: ${question.crossword.key} — ${question.crossword.entries.map(entry => `${entry.number}. ${entry.answer}`).join(", ")}`;
+  if (question.type === "crossword" || question.type === "quizcross") return question.crossword.entries.map(entry => `${entry.number}. ${entry.answer}`).join(", ");
+  if (question.type === "cloze") return clozeGapAnswers(question.text).join(", ");
+  return acceptedAnswers(question.answer)[0] || question.answer;
+}
+
+function skipQuestion() {
+  if (hasChecked || resultsShown) return;
+  clearQuestionTimer();
+  clearAutoAdvance();
+  const question = activeQuiz.questions[questionIndex];
+  results[questionIndex] = {
+    prompt: question.prompt,
+    correct: false,
+    skipped: true,
+    answer: "",
+    correctAnswer: getQuestionCorrectText(question),
+    selectedIndexes: []
+  };
+  goToNextQuestion();
+}
+
 function scheduleAutoAdvance() {
   clearAutoAdvance();
   if (!autoAdvanceSeconds || !hasChecked) return;
@@ -1532,14 +1561,7 @@ function checkOrNext() {
     : question.type === "crossword" || question.type === "quizcross" || question.type === "keycross" ? crosswordAllCorrect(question)
     : question.type === "cloze" ? (() => { const ans = clozeGapAnswers(question.text); return ans.length > 0 && ans.every((a, i) => matchesTextAnswer(selectedAnswer[i], a)); })()
     : matchesTextAnswer(selectedAnswer, question.answer);
-  const correctText = question.type === "choice" ? correctIndexes.map(index => question.answers[index]).join(", ")
-    : question.type === "match" ? question.pairs.map(pair => `${pair.left} → ${pair.right}`).join(", ")
-    : question.type === "correct" ? `${correctTokens(question.prompt)[correctWrongIndex(question)] || question.wrong} → ${acceptedAnswers(question.answer)[0] || ""}`
-    : question.type === "wordsearch" ? question.grid.words.join(", ")
-    : question.type === "keycross" ? `Hasło: ${question.crossword.key} — ${question.crossword.entries.map(entry => `${entry.number}. ${entry.answer}`).join(", ")}`
-    : question.type === "crossword" || question.type === "quizcross" ? question.crossword.entries.map(entry => `${entry.number}. ${entry.answer}`).join(", ")
-    : question.type === "cloze" ? clozeGapAnswers(question.text).join(", ")
-    : acceptedAnswers(question.answer)[0] || question.answer;
+  const correctText = getQuestionCorrectText(question);
   const correctSentence = question.type === "correct" ? buildCorrectedSentence(question) : buildCorrectSentence(question, correctText);
   const userText = question.type === "choice" ? selectedIndexes.map(index => question.answers[index]).join(", ")
     : question.type === "order" ? selectedAnswer.map(id => question.wordTiles.find(tile => tile.id === id)?.word || "").join(" ")
@@ -1559,6 +1581,7 @@ function checkOrNext() {
 }
 
 function showCheckedQuestion(question, result) {
+  $("#skipQuestion").hidden = true;
   const correctIndexes = question.type === "choice" ? getCorrectIndexes(question) : [];
   const selectedIndexes = result.selectedIndexes || [];
   if (question.type === "choice") {
@@ -1893,7 +1916,7 @@ function showResults() {
   $("#correctCount").textContent = correct; $("#wrongCount").textContent = results.length - correct; $("#totalCount").textContent = results.length;
   $("#resultTitle").textContent = percent === 100 ? "Perfekcyjnie!" : percent >= 70 ? "Świetna robota!" : percent >= 40 ? "Dobry początek!" : "Praktyka czyni mistrza";
   $("#resultSubtitle").textContent = `Ukończyłeś test „${activeQuiz.title}". ${percent >= 70 ? "Tak trzymaj!" : "Sprawdź odpowiedzi i spróbuj ponownie."}`;
-  $("#reviewList").innerHTML = results.map((result, i) => `<article class="review-item ${result.correct ? "good" : "bad"}"><span class="review-status">${result.correct ? "✓" : "×"}</span><div><p>${i+1}. ${escapeHtml(result.prompt)}</p><small>Twoja odpowiedź: ${escapeHtml(result.answer || "brak")}</small></div><div class="review-answer">Poprawna odpowiedź<strong>${escapeHtml(result.correctAnswer)}</strong></div></article>`).join("");
+  $("#reviewList").innerHTML = results.map((result, i) => `<article class="review-item ${result.correct ? "good" : "bad"}"><span class="review-status">${result.correct ? "✓" : result.skipped ? "—" : "×"}</span><div><p>${i+1}. ${escapeHtml(result.prompt)}</p><small>${result.skipped ? "Pominięto bez odpowiedzi" : `Twoja odpowiedź: ${escapeHtml(result.answer || "brak")}`}</small></div><div class="review-answer">Poprawna odpowiedź<strong>${escapeHtml(result.correctAnswer)}</strong></div></article>`).join("");
   updateSrAfterQuiz(activeQuiz.id, results, activeQuiz.questions);
   const wrongResults = results.filter(r => !r.correct).length;
   const retryWrongBtn = $("#retryWrong");
@@ -2643,6 +2666,7 @@ $("#restoreDailyWords").addEventListener("click", restoreDefaultDailyWords);
 $("#dailyWordsForm").addEventListener("submit", saveConfiguredDailyWords);
 $("#dailyWordsModal").addEventListener("click", event => { if (event.target.id === "dailyWordsModal") closeDailyWordsSettings(); });
 $("#checkAnswer").addEventListener("click", checkOrNext);
+$("#skipQuestion").addEventListener("click", skipQuestion);
 $("#previousQuestion").addEventListener("click", goToPreviousQuestion);
 $("#exitQuiz").addEventListener("click", () => { if (!results.length || confirm("Zakończyć test? Twój bieżący wynik nie zostanie zapisany.")) { clearAutoAdvance(); stopMusic(); showView("home"); } });
 $("#retryQuiz").addEventListener("click", () => startQuiz(activeQuiz.id));
@@ -2733,7 +2757,7 @@ function importData(event) {
   if (!file) return;
   event.target.value = "";
   const reader = new FileReader();
-  reader.onload = e => {
+  reader.onload = async e => {
     try {
       const data = JSON.parse(e.target.result);
       if (!Array.isArray(data.quizzes)) throw new Error("bad format");
@@ -2745,7 +2769,19 @@ function importData(event) {
       if (data.dailyWords)                   localStorage.setItem(DAILY_WORDS_STORAGE_KEY,    JSON.stringify(data.dailyWords));
       if (data.autoAdvance != null)          localStorage.setItem(AUTO_ADVANCE_STORAGE_KEY,   data.autoAdvance);
       if (data.theme)                        localStorage.setItem(THEME_STORAGE_KEY,          data.theme);
-      location.reload();
+      quizzes = data.quizzes;
+      customCategories = Array.isArray(data.categories) ? data.categories : loadCategories();
+      soundMessages = loadSoundMessages();
+      dailyWords = loadDailyWords();
+      autoAdvanceSeconds = loadAutoAdvanceSeconds();
+      applyTheme(data.theme || localStorage.getItem(THEME_STORAGE_KEY) || "forest");
+      if (window.firebaseDB?.getCurrentUser?.()) {
+        if (typeof window.firebaseDB.replaceAllQuizzes !== "function") throw new Error("cloud sync unavailable");
+        await window.firebaseDB.replaceAllQuizzes(quizzes);
+      }
+      activeCategory = "all";
+      renderQuizGrid();
+      showToast(`Zaimportowano ${count} ${count === 1 ? "test" : "testów"}`);
     } catch {
       alert("Błąd: nie udało się wczytać pliku.\nUpewnij się, że to plik eksportu z Bright English.");
     }
@@ -2775,6 +2811,7 @@ function mergeQuizzes(event) {
       });
       if (added > 0) {
         saveQuizzes(); saveCategories(); renderQuizGrid();
+        if (window.firebaseDB?.getCurrentUser?.()) window.firebaseDB.saveAllQuizzes(quizzes).catch(() => showToast("Testy dodano lokalnie, ale synchronizacja z chmurą nie powiodła się"));
         const lbl = added === 1 ? "test" : added < 5 ? "testy" : "testów";
         showToast(`Dodano ${added} nowe ${lbl} do biblioteki`);
       } else {

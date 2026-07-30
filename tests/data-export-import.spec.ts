@@ -199,4 +199,34 @@ test.describe('Eksport, import i scalanie danych', () => {
     // Biblioteka pozostaje nietknięta (ta sama liczba testów, brak reloadu do pustego stanu).
     await expect(allTab).toHaveAttribute('aria-label', `Wszystkie, testów: ${beforeCount}`);
   });
+
+  test('Import po zalogowaniu zapisuje testy w chmurze', async ({ page }) => {
+    await page.goto('/');
+    await page.evaluate(() => {
+      (window as any).__syncedQuizzes = null;
+      (window as any).firebaseDB = {
+        getCurrentUser: () => ({ uid: 'test-user' }),
+        replaceAllQuizzes: async (quizzes: unknown[]) => { (window as any).__syncedQuizzes = quizzes; },
+      };
+    });
+
+    const importedQuiz = {
+      id: 'cloud-import-regression',
+      title: 'Import po zalogowaniu',
+      level: 'A1',
+      category: 'Chmura',
+      questions: [{ type: 'fill', prompt: 'Cloud ___', answer: 'test' }],
+    };
+    page.once('dialog', dialog => dialog.accept());
+    await page.locator('#importDataFile').evaluate((input: HTMLInputElement, backup) => {
+      const file = new File([JSON.stringify(backup)], 'backup.json', { type: 'application/json' });
+      const transfer = new DataTransfer();
+      transfer.items.add(file);
+      input.files = transfer.files;
+      input.dispatchEvent(new Event('change', { bubbles: true }));
+    }, { version: 1, quizzes: [importedQuiz], categories: ['Chmura'] });
+
+    await expect(page.getByRole('button', { name: 'Rozpocznij test Import po zalogowaniu' })).toBeVisible();
+    await expect.poll(() => page.evaluate(() => (window as any).__syncedQuizzes?.[0]?.id)).toBe('cloud-import-regression');
+  });
 });

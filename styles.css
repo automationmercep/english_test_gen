@@ -199,6 +199,12 @@ nav { display: flex; gap: 30px; height: 100%; }
 .quiz-mode .play-view { min-height: calc(100vh - 58px); }
 .feedback small { font-size: 18px; line-height: 1.4; margin-top: 9px; }
 .question-navigation { display: flex; justify-content: center; align-items: center; flex-wrap: wrap; gap: 10px; }
+.skip-button { min-width: 150px; }
+@media (max-width: 540px) {
+  .question-navigation .skip-button { grid-column: 1 / -1; grid-row: 1; }
+  .question-navigation .previous-button { grid-column: 1; grid-row: 2; }
+  .question-navigation .check-button { grid-column: 2; grid-row: 2; }
+}
 .order-builder { grid-column: 1 / -1; display: grid; gap: 14px; }
 .order-zone { min-height: 76px; display: flex; justify-content: center; align-items: center; flex-wrap: wrap; gap: 9px; padding: 14px; border: 2px dashed #b8c5ba; border-radius: 16px; }
 .order-sentence { background: rgba(255,253,248,.75); }.order-bank { background: #dfe9dd; border-style: solid; border-width: 1px; }
@@ -522,3 +528,7 @@ body.theme-night .flashcard-back-hidden { background: rgba(32,46,40,.7); border-
 body.theme-night .flashcard-back-revealed { background: var(--sage); }
 body.theme-night .flashcard-back-revealed.correct { background: #1e3d28; }
 body.theme-night .flashcard-back-revealed.wrong { background: #3d2020; border-color: #6e3030; }
+
+@media (max-width: 540px) {
+  .play-view { padding-bottom: calc(196px + env(safe-area-inset-bottom)); }
+}

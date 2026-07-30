@@ -63,6 +63,12 @@ async function saveAllQuizzesToCloud(uid, quizzes) {
   await batch.commit();
 }
 
+async function replaceAllQuizzesInCloud(uid, quizzes) {
+  const snap = await getDocs(quizzesRef(uid));
+  await Promise.all(snap.docs.map(item => deleteDoc(item.ref)));
+  await saveAllQuizzesToCloud(uid, quizzes);
+}
+
 function updateUI(user) {
   const loginBtn   = document.getElementById("loginButton");
   const userInfo   = document.getElementById("userInfo");
@@ -170,5 +176,6 @@ window.firebaseDB = {
   saveQuiz:      (quiz)         => currentUser ? saveQuizToCloud(currentUser.uid, quiz) : Promise.resolve(),
   deleteQuiz:    (id)           => currentUser ? deleteQuizFromCloud(currentUser.uid, id) : Promise.resolve(),
   saveAllQuizzes:(quizzes)      => currentUser ? saveAllQuizzesToCloud(currentUser.uid, quizzes) : Promise.resolve(),
+  replaceAllQuizzes:(quizzes)   => currentUser ? replaceAllQuizzesInCloud(currentUser.uid, quizzes) : Promise.resolve(),
   getCurrentUser: ()            => currentUser
 };

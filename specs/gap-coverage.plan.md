@@ -70,6 +70,15 @@ Ten plan testów E2E celowo NIE powtarza scenariuszy już pokrytych istniejącym
   2. Otwórz panel „Dane”, kliknij „Importuj dane” i wybierz przygotowany nieprawidłowy plik.
     - expect: Aplikacja nie zawiesza się i nie czyści localStorage w sposób niekontrolowany — wyświetla komunikat o błędzie importu (alert/komunikat) i biblioteka testów pozostaje w niezmienionym, poprawnym stanie.
 
+#### 1.5. Import po zalogowaniu synchronizuje testy z chmurą
+
+**File:** `tests/data-export-import.spec.ts`
+
+**Steps:**
+  1. Zaloguj użytkownika i wczytaj poprawny plik eksportu zawierający nowy test.
+    - expect: Nowy test od razu pojawia się w bibliotece.
+    - expect: Pełny zaimportowany zestaw zostaje przekazany do trwałego zapisu w Firebase, dzięki czemu pozostaje dostępny po odświeżeniu strony.
+
 ### 2. Ustawienia dźwięku, muzyki i komunikatów głosowych
 
 **Seed:** `seed.spec.ts`
@@ -258,7 +267,19 @@ Ten plan testów E2E celowo NIE powtarza scenariuszy już pokrytych istniejącym
   4. Z pytania 1 ponownie przejdź „Następne pytanie” do pytania 2.
     - expect: Pytanie 2 nie jest jeszcze odpowiedziane — przyciski odpowiedzi są aktywne, a „Sprawdź odpowiedź” jest disabled do momentu wyboru.
 
-#### 6.2. Przedwczesne zakończenie testu przyciskiem „×” (Zakończ test) wraca do biblioteki bez ekranu wyniku
+#### 6.2. Pomijanie pytania bez udzielania odpowiedzi
+
+**File:** `tests/quiz-navigation.spec.ts`
+
+**Steps:**
+  1. Rozpocznij test „Everyday English”.
+    - expect: Obok przycisków nawigacji widoczny jest przycisk „Pomiń pytanie”, aktywny także wtedy, gdy nie wybrano odpowiedzi.
+  2. Kliknij „Pomiń pytanie” bez zaznaczania lub wpisywania odpowiedzi.
+    - expect: Aplikacja przechodzi bezpośrednio do kolejnego pytania.
+  3. Pomiń w ten sam sposób wszystkie pozostałe pytania.
+    - expect: Wyświetla się ekran wyniku 0%, wszystkie pytania należą do sekcji „Do powtórki”, a przy każdym z nich widnieje informacja „Pominięto bez odpowiedzi”.
+
+#### 6.3. Przedwczesne zakończenie testu przyciskiem „×” (Zakończ test) wraca do biblioteki bez ekranu wyniku
 
 **File:** `tests/quiz-navigation.spec.ts`
 
@@ -270,7 +291,7 @@ Ten plan testów E2E celowo NIE powtarza scenariuszy już pokrytych istniejącym
   3. Rozpocznij ten sam test ponownie od początku.
     - expect: Test zaczyna się od pytania 1 (brak zapisanego stanu przerwanego podejścia), potwierdzając że przedwczesne zakończenie nie zapisuje częściowego wyniku.
 
-#### 6.3. Ekran wyników pokazuje poprawny procent, podsumowanie i listę pytań
+#### 6.4. Ekran wyników pokazuje poprawny procent, podsumowanie i listę pytań
 
 **File:** `tests/quiz-results.spec.ts`
 
@@ -285,7 +306,7 @@ Ten plan testów E2E celowo NIE powtarza scenariuszy już pokrytych istniejącym
   4. Zweryfikuj obecność przycisków akcji na dole ekranu wyniku.
     - expect: Widoczne są przyciski „↺ Powtórz N błędne pytanie/pytania”, „↻ Spróbuj ponownie” i „Wróć do testów →”.
 
-#### 6.4. Przycisk „Powtórz błędne pytania” rozpoczyna nowe podejście tylko z pytaniami odpowiedzianymi niepoprawnie
+#### 6.5. Przycisk „Powtórz błędne pytania” rozpoczyna nowe podejście tylko z pytaniami odpowiedzianymi niepoprawnie
 
 **File:** `tests/quiz-results.spec.ts`
 
@@ -297,7 +318,7 @@ Ten plan testów E2E celowo NIE powtarza scenariuszy już pokrytych istniejącym
   3. Odpowiedz poprawnie na powtórzone pytanie i dokończ mini-podejście.
     - expect: Ekran wyniku pokazuje 100% dla tego skróconego podejścia.
 
-#### 6.5. Przycisk „Spróbuj ponownie” restartuje cały test od pytania 1
+#### 6.6. Przycisk „Spróbuj ponownie” restartuje cały test od pytania 1
 
 **File:** `tests/quiz-results.spec.ts`
 
@@ -307,7 +328,7 @@ Ten plan testów E2E celowo NIE powtarza scenariuszy już pokrytych istniejącym
   2. Kliknij „↻ Spróbuj ponownie”.
     - expect: Test zaczyna się od nowa od pytania 1, zawierając WSZYSTKIE oryginalne pytania testu (licznik pytań pokazuje „1 / N” z pełnym N, nie tylko błędne).
 
-#### 6.6. Test z błędnymi odpowiedziami z poprzedniego podejścia jest oznaczony jako „trudny” na liście testów
+#### 6.7. Test z błędnymi odpowiedziami z poprzedniego podejścia jest oznaczony jako „trudny” na liście testów
 
 **File:** `tests/quiz-results.spec.ts`
 
