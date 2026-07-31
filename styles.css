@@ -279,8 +279,8 @@ nav { display: flex; gap: 30px; height: 100%; }
 body.crossword-fullscreen-open { overflow: hidden; }
 /* Classic interlocking crossword */
 .crossword-builder { grid-column: 1 / -1; display: grid; gap: 20px; justify-items: center; }
-.cw-grid { display: grid; gap: 2px; max-width: 100%; }
-.cw-grid .cw-cell { position: relative; aspect-ratio: 1; min-width: 42px; display: grid; place-items: center; }
+.cw-grid { display: grid; gap: 2px; width: max-content; max-width: 100%; }
+.cw-grid .cw-cell { position: relative; aspect-ratio: 1; width: clamp(42px, 6vw, 64px); min-width: 0; display: grid; place-items: center; }
 .cw-grid .cw-cell.cw-blank { background: transparent; }
 .cw-grid-number { position: absolute; top: 2px; left: 4px; font-size: 13px; font-weight: 700; color: var(--muted); pointer-events: none; z-index: 1; }
 .crossword-builder.disabled .cw-input { cursor: default; }
