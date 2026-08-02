@@ -4,7 +4,9 @@ export default defineConfig({
   testDir: '.',
   testMatch: ['tests/**/*.spec.ts', 'seed.spec.ts'],
   fullyParallel: true,
-  reporter: [['list'], ['html', { open: 'never' }]],
+  reporter: process.env.CI
+    ? [['blob']]
+    : [['list'], ['html', { open: 'never' }]],
   use: {
     headless: false,
     baseURL: 'http://127.0.0.1:8000',
