@@ -2001,10 +2001,8 @@ function removeQuizImage() {
   updateImagePreview();
 }
 
-async function searchImages() {
-  const query = $("#imageSearchQuery").value.trim();
+async function populateImageSearchResults(query, results, onSelect) {
   if (!query) return;
-  const results = $("#imageSearchResults");
   results.hidden = false;
   results.innerHTML = '<span class="image-search-status">Szukam…</span>';
   try {
@@ -2019,18 +2017,26 @@ async function searchImages() {
     results.innerHTML = data.results.map(item =>
       `<button type="button" class="image-search-thumb" data-url="${escapeHtml(item.url)}" title="${escapeHtml(item.title || '')}"><img src="${escapeHtml(item.thumbnail || item.url)}" alt="${escapeHtml(item.title || '')}" loading="lazy" /></button>`
     ).join("");
-    $$("#imageSearchResults .image-search-thumb").forEach(btn => {
+    $$(".image-search-thumb", results).forEach(btn => {
       btn.addEventListener("click", () => {
-        creatorImageData = btn.dataset.url;
-        $("#quizImageUrl").value = creatorImageData;
-        updateImagePreview();
-        $$("#imageSearchResults .image-search-thumb").forEach(b => b.classList.remove("active"));
+        onSelect(btn.dataset.url);
+        $$(".image-search-thumb", results).forEach(b => b.classList.remove("active"));
         btn.classList.add("active");
       });
     });
   } catch {
     results.innerHTML = '<span class="image-search-status">Nie udało się pobrać wyników. Sprawdź połączenie z internetem.</span>';
   }
+}
+
+async function searchImages() {
+  const query = $("#imageSearchQuery").value.trim();
+  const results = $("#imageSearchResults");
+  await populateImageSearchResults(query, results, url => {
+    creatorImageData = url;
+    $("#quizImageUrl").value = creatorImageData;
+    updateImagePreview();
+  });
 }
 
 function updateCreatorMode() {
@@ -2202,6 +2208,9 @@ function bindQuestionImagePicker(card) {
   const fileInput = $(".question-image-file", card);
   const urlInput = $(".question-image-url", card);
   const removeButton = $(".question-image-remove", card);
+  const searchInput = $(".question-image-search-query", card);
+  const searchButton = $(".question-image-search-btn", card);
+  const searchResults = $(".question-image-search-results", card);
   fileInput.addEventListener("change", async () => {
     const file = fileInput.files[0];
     fileInput.value = "";
@@ -2222,13 +2231,30 @@ function bindQuestionImagePicker(card) {
   removeButton.addEventListener("click", () => {
     card.imageData = "";
     urlInput.value = "";
+    searchResults.hidden = true;
+    searchResults.innerHTML = "";
     updateQuestionImagePreview(card);
+  });
+  const searchQuestionImages = async () => {
+    await populateImageSearchResults(searchInput.value.trim(), searchResults, url => {
+      card.imageData = url;
+      urlInput.value = url;
+      updateQuestionImagePreview(card);
+    });
+  };
+  searchButton.addEventListener("click", searchQuestionImages);
+  searchInput.addEventListener("keydown", event => {
+    if (event.key === "Enter") {
+      event.preventDefault();
+      searchQuestionImages();
+    }
   });
 }
 
 function questionImagePickerHtml(card) {
   const imageUrlValue = card.imageData && /^https?:/i.test(card.imageData) ? card.imageData : "";
-  return `<div class="question-image-picker"><div class="question-image-preview">${card.imageData ? `<img src="${escapeHtml(card.imageData)}" alt="" />` : '<span aria-hidden="true">▧</span><small>Obrazek pytania (opcjonalnie)</small>'}</div><div class="question-image-actions"><label class="image-file-button">Wybierz plik<input type="file" accept="image/jpeg,image/png,image/webp,image/gif" class="question-image-file" hidden /></label><input type="url" class="image-url-input question-image-url" placeholder="lub wklej adres URL obrazka…" value="${escapeHtml(imageUrlValue)}" /><button type="button" class="question-image-remove" ${card.imageData ? "" : "hidden"}>Usuń</button></div><p class="fill-editor-note">Dodaj obrazek, aby wyświetlić pytanie jak fiszkę ze zdjęciem i kolorowymi odpowiedziami.</p></div>`;
+  const searchInputId = `questionImageSearch-${card.dataset.uid}`;
+  return `<div class="question-image-picker"><div class="question-image-preview">${card.imageData ? `<img src="${escapeHtml(card.imageData)}" alt="" />` : '<span aria-hidden="true">▧</span><small>Obrazek pytania (opcjonalnie)</small>'}</div><div class="question-image-actions"><label class="image-file-button">Wybierz plik<input type="file" accept="image/jpeg,image/png,image/webp,image/gif" class="question-image-file" hidden /></label><input type="url" class="image-url-input question-image-url" placeholder="lub wklej adres URL obrazka…" value="${escapeHtml(imageUrlValue)}" /><button type="button" class="question-image-remove" ${card.imageData ? "" : "hidden"}>Usuń</button></div><div class="image-search-row question-image-search-row"><label class="visually-hidden" for="${searchInputId}">Szukaj zdjęcia do pytania</label><input id="${searchInputId}" class="image-url-input question-image-search-query" type="text" placeholder="Szukaj zdjęcia… np. airport, luggage" autocomplete="off" /><button type="button" class="image-search-btn question-image-search-btn">🔍 Szukaj</button></div><div class="image-search-results question-image-search-results" hidden></div><p class="fill-editor-note">Dodaj obrazek, aby wyświetlić pytanie jak fiszkę ze zdjęciem i kolorowymi odpowiedziami.</p></div>`;
 }
 
 function renderEditor(card, answerValues = null, correctIndexes = [0]) {

@@ -20,7 +20,8 @@ test.describe('Dostępność kluczowych interakcji', () => {
     await page.goto('/');
     await page.getByRole('button', { name: /Nowy test/ }).click();
 
-    await expect(page.getByLabel('Szukaj zdjęcia')).toBeVisible();
+    await expect(page.getByLabel('Szukaj zdjęcia', { exact: true })).toBeVisible();
+    await expect(page.getByLabel('Szukaj zdjęcia do pytania', { exact: true })).toHaveCount(2);
     await expect(page.getByLabel('Pytania w formacie CSV')).toBeVisible();
   });
 });

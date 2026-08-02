@@ -15,5 +15,6 @@ seed.spec.ts (świeży stan, brak dodatkowej konfiguracji)
 
 2. Otwórz kreator testu.
    - Oczekiwane: pole wyszukiwania zdjęcia ma etykietę „Szukaj zdjęcia”.
+   - Oczekiwane: każde domyślne pytanie ma własne pole z etykietą „Szukaj zdjęcia do pytania”.
    - Oczekiwane: pole importu ma etykietę „Pytania w formacie CSV”, niezależną
      od przykładu umieszczonego w placeholderze.
