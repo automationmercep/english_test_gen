@@ -1011,7 +1011,10 @@ function renderQuestion() {
   playImage.onload = () => { playImage.hidden = false; };
   playImage.onerror = () => { playImage.hidden = true; playImage.removeAttribute("src"); };
   const questionImage = question.type === "choice" || question.type === "fill" ? question.image : "";
-  const displayImage = questionImage || activeQuiz.image;
+  const hasQuestionImages = activeQuiz.questions.some(item =>
+    (item.type === "choice" || item.type === "fill") && item.image
+  );
+  const displayImage = questionImage || (!hasQuestionImages ? activeQuiz.image : "");
   if (displayImage) {
     playImage.src = displayImage;
     if (playImage.complete && playImage.naturalWidth > 0) playImage.hidden = false;
