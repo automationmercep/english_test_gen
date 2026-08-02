@@ -369,6 +369,7 @@ body.crossword-fullscreen-open { overflow: hidden; }
 .question-image-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 .question-image-actions .image-url-input { flex: 1; min-width: 160px; margin: 0; }
 .question-image-actions .question-image-remove { border: 1px solid var(--line); border-radius: 999px; background: var(--card); padding: 7px 11px; font-size: 11px; font-weight: 700; cursor: pointer; color: #9a6c65; }
+.question-image-search-row { margin-top: 8px; }
 .quiz-stage.success-pop h1 { animation: success-bounce .55s cubic-bezier(.2,.8,.2,1); }
 .quiz-stage.success-pop .answer-option.correct,
 .quiz-stage.success-pop .fill-answer.correct { animation: correct-glow .75s ease; }

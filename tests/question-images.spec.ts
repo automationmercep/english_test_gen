@@ -6,6 +6,12 @@ import { test, expect } from '@playwright/test';
 test.describe('Obrazki przypisane do pytań', () => {
   test('Obrazek jednego pytania nie pojawia się w pozostałych pytaniach', async ({ page }) => {
     const imageUrl = 'http://127.0.0.1:8000/tests/fixtures/question-image.svg';
+    await page.route('https://api.openverse.org/v1/images/**', async route => {
+      await route.fulfill({
+        contentType: 'application/json',
+        body: JSON.stringify({ results: [{ url: imageUrl, thumbnail: imageUrl, title: 'Bagaż na lotnisku' }] }),
+      });
+    });
 
     await page.goto('/');
     await page.getByRole('button', { name: 'Stwórz test' }).click();
@@ -20,7 +26,13 @@ test.describe('Obrazki przypisane do pytań', () => {
     await firstQuestion.getByPlaceholder('Odpowiedź B').fill('błędna 1');
     await firstQuestion.getByPlaceholder('Odpowiedź C').fill('błędna 2');
     await firstQuestion.getByPlaceholder('Odpowiedź D').fill('błędna 3');
-    await firstQuestion.locator('.question-image-url').fill(imageUrl);
+    await firstQuestion.getByRole('textbox', { name: 'Szukaj zdjęcia do pytania' }).fill('airport luggage');
+    await firstQuestion.getByRole('button', { name: 'Szukaj' }).click();
+    const searchResult = firstQuestion.locator('.image-search-thumb');
+    await expect(searchResult).toBeVisible();
+    await searchResult.click();
+    await expect(firstQuestion.locator('.question-image-preview img')).toHaveAttribute('src', imageUrl);
+    await expect(firstQuestion.locator('.question-image-url')).toHaveValue(imageUrl);
 
     const secondQuestion = page.locator('.question-card').nth(1);
     await secondQuestion.getByPlaceholder('Wpisz treść pytania…').fill('Pytanie bez obrazka');
