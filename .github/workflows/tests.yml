@@ -11,7 +11,7 @@ permissions:
   contents: read
 
 jobs:
-  test:
+  unit-tests:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -26,22 +26,76 @@ jobs:
       - name: Run unit tests
         run: npm run test:unit
 
+  playwright-tests:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        shardIndex: [1, 2, 3, 4]
+        shardTotal: [4]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install dependencies
+        run: npm install
+
       - name: Install Playwright browsers
         run: npx playwright install --with-deps chromium
 
       - name: Run Playwright tests
-        run: xvfb-run -a npx playwright test
-        continue-on-error: true
-        id: run_tests
+        run: xvfb-run -a npx playwright test --shard=${{ matrix.shardIndex }}/${{ matrix.shardTotal }}
 
-      - name: Upload Playwright report
-        if: always()
+      - name: Upload blob report
+        if: ${{ !cancelled() }}
         uses: actions/upload-artifact@v4
         with:
-          name: playwright-report
+          name: blob-report-${{ matrix.shardIndex }}
+          path: blob-report/
+          retention-days: 1
+
+  merge-reports:
+    if: ${{ !cancelled() }}
+    needs: [playwright-tests]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Download blob reports
+        uses: actions/download-artifact@v4
+        with:
+          path: all-blob-reports
+          pattern: blob-report-*
+          merge-multiple: true
+
+      - name: Merge Playwright reports
+        run: npx playwright merge-reports --reporter=html ./all-blob-reports
+
+      - name: Upload Playwright report
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report-attempt-${{ github.run_attempt }}
           path: playwright-report/
           retention-days: 14
 
-      - name: Fail job if tests failed
-        if: steps.run_tests.outcome == 'failure'
+  test:
+    if: ${{ !cancelled() }}
+    needs: [unit-tests, playwright-tests, merge-reports]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Fail if any test job failed
+        if: ${{ needs['unit-tests'].result != 'success' || needs['playwright-tests'].result != 'success' || needs['merge-reports'].result != 'success' }}
         run: exit 1
+
+      - name: Confirm all tests passed
+        run: echo "All test jobs passed"
