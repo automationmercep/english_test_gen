@@ -87,3 +87,15 @@ jobs:
           name: playwright-report-attempt-${{ github.run_attempt }}
           path: playwright-report/
           retention-days: 14
+
+  test:
+    if: ${{ !cancelled() }}
+    needs: [unit-tests, playwright-tests, merge-reports]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Fail if any test job failed
+        if: ${{ needs['unit-tests'].result != 'success' || needs['playwright-tests'].result != 'success' || needs['merge-reports'].result != 'success' }}
+        run: exit 1
+
+      - name: Confirm all tests passed
+        run: echo "All test jobs passed"
