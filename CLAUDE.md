@@ -70,7 +70,8 @@ Everything runs client-side; there is no backend other than optional Firebase sy
 - All app state (quizzes, categories, sound settings, daily words, theme, spaced-repetition data, etc.) is plain JS variables in `app.js`, persisted to `localStorage` under versioned keys (`bright-english-*-v1`, defined as constants at the top of the file). Each piece of state has a `load*`/`save*` pair.
 - `starterQuizzes` (top of `app.js`) is the built-in seed data used the first time `loadQuizzes()` finds nothing in `localStorage`.
 - One built-in quiz (`dynamic: true`) has no fixed `questions` array — its questions are procedurally generated fresh each play/print via `generateGrammarQuestions()`.
-- Export/import (`exportData`/`importData`/`mergeQuizzes`) round-trip the entire `localStorage` state as one JSON blob; "merge" adds only quizzes with unseen ids.
+- Completed full quiz runs are stored separately under `bright-english-progress-v1`, keyed by quiz id. Each quiz keeps at most 20 validated attempts (`completedAt`, `correct`, `total`, recomputed `percent`); corrective runs started with "Powtórz błędne pytania" do not affect the history. Deleting a quiz/category also removes its history.
+- Export/import (`exportData`/`importData`/`mergeQuizzes`) round-trip the entire `localStorage` state as one JSON blob; backup format version 2 includes the progress history, while "merge" adds only quizzes with unseen ids and intentionally does not merge personal history.
 
 ### Optional cloud sync (Firebase)
 
