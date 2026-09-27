@@ -9,6 +9,8 @@ const SR_STORAGE_KEY = "bright-english-sr-v1";
 const QUESTION_TIME_STORAGE_KEY = "bright-english-qtime-v1";
 const READ_ANSWER_STORAGE_KEY = "bright-english-read-answer-v1";
 const VOICE_STORAGE_KEY = "bright-english-voice-v1";
+const PROGRESS_STORAGE_KEY = "bright-english-progress-v1";
+const MAX_PROGRESS_ATTEMPTS = 20;
 const DEFAULT_SOUND_MESSAGES = {
   correct: "Correct answer",
   wrong: "Wrong answer",
@@ -115,6 +117,7 @@ const starterQuizzes = [
 
 let quizzes = loadQuizzes();
 let customCategories = loadCategories();
+let progressData = loadProgressData();
 
 // Gdy Firebase załaduje dane z chmury, zastąp lokalne
 window.__onCloudQuizzesLoaded = function(cloudQuizzes) {
@@ -168,7 +171,9 @@ let draggingQuizId = null;
 let suppressCardClick = false;
 let mouseQuizDrag = null;
 let pendingCategoryDeletion = null;
+let progressQuizId = null;
 let activeModalState = null;
+let isCorrectionRun = false;
 let matchSelectedTileId = null;
 let wordSearchAnchor = null;
 const MATCH_COLORS = ["#2fa4dc", "#d1263f", "#f0a95c", "#1c7a41", "#c25fd1", "#2340b8", "#2bbd80", "#e2551f", "#7332c4", "#1e9bdb"];
@@ -246,6 +251,47 @@ function loadCategories() {
   return [...new Set(quizzes.map(quiz => quiz.category || "Angielski"))];
 }
 function saveCategories() { localStorage.setItem(CATEGORIES_STORAGE_KEY, JSON.stringify(customCategories)); }
+function loadProgressData() {
+  try {
+    return sanitizeQuizProgress(JSON.parse(localStorage.getItem(PROGRESS_STORAGE_KEY)), MAX_PROGRESS_ATTEMPTS);
+  } catch {
+    return {};
+  }
+}
+function saveProgressData() {
+  try {
+    localStorage.setItem(PROGRESS_STORAGE_KEY, JSON.stringify(progressData));
+    return true;
+  } catch {
+    return false;
+  }
+}
+function removeQuizProgress(quizIds) {
+  const previous = progressData;
+  const next = { ...progressData };
+  let changed = false;
+  quizIds.forEach(quizId => {
+    if (!Object.hasOwn(next, quizId)) return;
+    delete next[quizId];
+    changed = true;
+  });
+  if (!changed) return true;
+  progressData = next;
+  if (saveProgressData()) return true;
+  progressData = previous;
+  return false;
+}
+function recordQuizProgress(quizId, correct, total) {
+  const attempt = normalizeQuizAttempt({ completedAt: new Date().toISOString(), correct, total });
+  if (!quizId || !attempt) return;
+  const current = Object.hasOwn(progressData, quizId) ? progressData[quizId] : [];
+  const previous = progressData;
+  progressData = sanitizeQuizProgress({ ...progressData, [quizId]: [...current, attempt] }, MAX_PROGRESS_ATTEMPTS);
+  if (!saveProgressData()) {
+    progressData = previous;
+    showToast("Nie udało się zapisać historii wyników");
+  }
+}
 function loadSoundMessages() {
   try {
     const saved = JSON.parse(localStorage.getItem(SOUND_MESSAGES_STORAGE_KEY));
@@ -585,11 +631,57 @@ function deleteCategoryWithQuizzes() {
   customCategories = customCategories.filter(item => item !== category);
   saveQuizzes();
   saveCategories();
+  const historyRemoved = removeQuizProgress(toDelete.map(quiz => quiz.id));
   if (window.firebaseDB) toDelete.forEach(q => window.firebaseDB.deleteQuiz(q.id));
   activeCategory = "all";
   closeDeleteCategoryModal();
   renderQuizGrid();
-  showToast("Usunięto kategorię „" + category + "\u201d wraz z jej testami");
+  showToast(historyRemoved ? "Usunięto kategorię „" + category + "\u201d wraz z jej testami" : "Kategorię usunięto, ale nie udało się zapisać zmiany historii");
+}
+
+function formatProgressDate(value) {
+  const date = new Date(value);
+  if (!Number.isFinite(date.getTime())) return "Nieznana data";
+  return new Intl.DateTimeFormat("pl-PL", { dateStyle: "medium", timeStyle: "short" }).format(date);
+}
+
+function renderProgressModal() {
+  const quiz = quizzes.find(item => item.id === progressQuizId);
+  if (!quiz) return closeProgressModal();
+  const attempts = Object.hasOwn(progressData, quiz.id) ? progressData[quiz.id] : [];
+  const summary = summarizeQuizProgress(attempts);
+  const displayPercent = value => value === null ? "—" : `${value}%`;
+  $("#progressModalTitle").textContent = `Postępy — ${quiz.title}`;
+  $("#progressSummary").innerHTML = `
+    <div class="progress-stat"><span>Ostatni wynik</span><strong>${displayPercent(summary.last?.percent ?? null)}</strong></div>
+    <div class="progress-stat"><span>Najlepszy wynik</span><strong>${displayPercent(summary.best)}</strong></div>
+    <div class="progress-stat"><span>Średnia</span><strong>${displayPercent(summary.average)}</strong></div>
+    <div class="progress-stat"><span>Liczba podejść</span><strong>${summary.count}</strong></div>`;
+  $("#progressHistory").innerHTML = attempts.length
+    ? `<ol class="progress-history-list">${[...attempts].reverse().map(attempt => `<li class="progress-history-item"><time datetime="${escapeHtml(attempt.completedAt)}">${escapeHtml(formatProgressDate(attempt.completedAt))}</time><span>${attempt.correct}/${attempt.total} poprawnych</span><strong>${attempt.percent}%</strong></li>`).join("")}</ol>`
+    : '<p class="progress-empty">Brak zapisanych wyników.</p>';
+  $("#clearProgress").disabled = summary.count === 0;
+}
+
+function openProgressModal(quizId) {
+  if (!quizzes.some(quiz => quiz.id === quizId)) return;
+  progressQuizId = quizId;
+  renderProgressModal();
+  openAccessibleModal($("#progressModal"), closeProgressModal, $("#closeProgress"));
+}
+
+function closeProgressModal() {
+  progressQuizId = null;
+  closeAccessibleModal($("#progressModal"));
+}
+
+function clearQuizProgress() {
+  const quiz = quizzes.find(item => item.id === progressQuizId);
+  if (!quiz || !Object.hasOwn(progressData, quiz.id)) return;
+  if (!confirm(`Wyczyścić historię wyników testu „${quiz.title}”?`)) return;
+  if (!removeQuizProgress([quiz.id])) return showToast("Nie udało się wyczyścić historii wyników");
+  renderProgressModal();
+  showToast("Historia wyników została wyczyszczona");
 }
 
 function closeCategoryDropdown() {
@@ -694,12 +786,12 @@ function renderQuizGrid() {
     return;
   }
   grid.innerHTML = visibleQuizzes.map((quiz) => `
-    <article class="quiz-card" data-id="${quiz.id}" data-letter="${escapeHtml(quiz.title.charAt(0).toUpperCase())}" draggable="true" title="Przeciągnij na folder, aby zmienić kategorię">
+    <article class="quiz-card" data-id="${escapeHtml(quiz.id)}" data-letter="${escapeHtml(quiz.title.charAt(0).toUpperCase())}" draggable="true" title="Przeciągnij na folder, aby zmienić kategorię">
       <div class="card-tags"><span class="tag level">${escapeHtml(quiz.level)}</span><span class="tag">${escapeHtml(quiz.category || "Angielski")}</span>${quiz.dynamic ? '<span class="tag random-tag">↻ Losowany</span>' : !starterQuizzes.some(item => item.id === quiz.id) ? (quiz.shuffleQuestions !== false || quiz.shuffleAnswers !== false ? '<span class="tag random-tag">↻ Losowany</span>' : '<span class="tag fixed-tag">Stała kolejność</span>') : ""}${srHardTag(quiz.id)}</div>
       <h3>${escapeHtml(quiz.title)}</h3><p>${quiz.questions.length} ${quiz.questions.length === 1 ? "pytanie" : "pytań"}</p>
       <div class="card-footer"><span>Rozpocznij</span><span class="play-circle">→</span></div>
       <button type="button" class="quiz-card-start" aria-label="Rozpocznij test ${escapeHtml(quiz.title)}"></button>
-      <div class="card-tools"><button class="card-tool delete-quiz" title="Usuń test" aria-label="Usuń test">Usuń</button><button class="card-tool print-quiz" title="Drukuj test" aria-label="Drukuj test">🖨 Drukuj</button><button class="card-tool edit-quiz" title="Edytuj test" aria-label="Edytuj test">✎ Edytuj</button></div>
+      <div class="card-tools"><button class="card-tool delete-quiz" title="Usuń test" aria-label="Usuń test">Usuń</button><button class="card-tool print-quiz" title="Drukuj test" aria-label="Drukuj test">🖨 Drukuj</button><button class="card-tool edit-quiz" title="Edytuj test" aria-label="Edytuj test">✎ Edytuj</button><button class="card-tool progress-quiz" title="Postępy" aria-label="Pokaż postępy testu ${escapeHtml(quiz.title)}">▥ Postępy</button></div>
     </article>`).join("");
   $$(".quiz-card", grid).forEach(card => {
     $(".quiz-card-start", card).addEventListener("click", () => {
@@ -709,6 +801,7 @@ function renderQuizGrid() {
     $(".delete-quiz", card).addEventListener("click", () => deleteQuiz(card.dataset.id));
     $(".print-quiz", card).addEventListener("click", () => printQuiz(card.dataset.id));
     $(".edit-quiz", card).addEventListener("click", () => editQuiz(card.dataset.id));
+    $(".progress-quiz", card).addEventListener("click", () => openProgressModal(card.dataset.id));
     card.addEventListener("dragstart", event => {
       draggingQuizId = card.dataset.id;
       suppressCardClick = true;
@@ -728,9 +821,10 @@ function deleteQuiz(id) {
   if (quiz && confirm(`Usunąć test „${quiz.title}"?`)) {
     quizzes = quizzes.filter(item => item.id !== id);
     saveQuizzes();
+    const historyRemoved = removeQuizProgress([id]);
     if (window.firebaseDB) window.firebaseDB.deleteQuiz(id);
     renderQuizGrid();
-    showToast("Test usunięty z biblioteki");
+    showToast(historyRemoved ? "Test usunięty z biblioteki" : "Test usunięto, ale nie udało się zapisać zmiany historii");
   }
 }
 
@@ -895,6 +989,7 @@ function startQuiz(id) {
       });
   if (!sourceQuiz.dynamic) preparedQs = applySpacedRepetition(id, preparedQs);
   activeQuiz = { ...sourceQuiz, questions: preparedQs };
+  isCorrectionRun = false;
   questionIndex = 0; results = []; resultsShown = false; renderQuestion(); showView("play");
   startMusic();
 }
@@ -912,6 +1007,7 @@ function startQuizWrong() {
     });
   if (!wrongQs.length) return;
   activeQuiz = { ...activeQuiz, questions: prepareQuestions(wrongQs, { shuffleQuestions: true, shuffleAnswers: true }) };
+  isCorrectionRun = true;
   questionIndex = 0; results = []; resultsShown = false;
   renderQuestion(); showView("play"); startMusic();
 }
@@ -1920,6 +2016,7 @@ function showResults() {
   $("#resultTitle").textContent = percent === 100 ? "Perfekcyjnie!" : percent >= 70 ? "Świetna robota!" : percent >= 40 ? "Dobry początek!" : "Praktyka czyni mistrza";
   $("#resultSubtitle").textContent = `Ukończyłeś test „${activeQuiz.title}". ${percent >= 70 ? "Tak trzymaj!" : "Sprawdź odpowiedzi i spróbuj ponownie."}`;
   $("#reviewList").innerHTML = results.map((result, i) => `<article class="review-item ${result.correct ? "good" : "bad"}"><span class="review-status">${result.correct ? "✓" : result.skipped ? "—" : "×"}</span><div><p>${i+1}. ${escapeHtml(result.prompt)}</p><small>${result.skipped ? "Pominięto bez odpowiedzi" : `Twoja odpowiedź: ${escapeHtml(result.answer || "brak")}`}</small></div><div class="review-answer">Poprawna odpowiedź<strong>${escapeHtml(result.correctAnswer)}</strong></div></article>`).join("");
+  if (!isCorrectionRun) recordQuizProgress(activeQuiz.id, correct, results.length);
   updateSrAfterQuiz(activeQuiz.id, results, activeQuiz.questions);
   const wrongResults = results.filter(r => !r.correct).length;
   const retryWrongBtn = $("#retryWrong");
@@ -2637,6 +2734,9 @@ $("#categoryModal").addEventListener("click", event => { if (event.target.id ===
 $("#cancelDeleteCategory").addEventListener("click", closeDeleteCategoryModal);
 $("#confirmDeleteCategory").addEventListener("click", deleteCategoryWithQuizzes);
 $("#deleteCategoryModal").addEventListener("click", event => { if (event.target.id === "deleteCategoryModal") closeDeleteCategoryModal(); });
+$("#closeProgress").addEventListener("click", closeProgressModal);
+$("#clearProgress").addEventListener("click", clearQuizProgress);
+$("#progressModal").addEventListener("click", event => { if (event.target.id === "progressModal") closeProgressModal(); });
 $("#startFeatured").addEventListener("click", () => startQuiz(quizzes[0]?.id));
 $("#soundToggle").addEventListener("click", () => { soundEnabled = !soundEnabled; if (!soundEnabled && "speechSynthesis" in window) window.speechSynthesis.cancel(); $("#soundToggle").classList.toggle("muted", !soundEnabled); $("#soundToggle").setAttribute("aria-label", soundEnabled ? "Wyłącz dźwięki" : "Włącz dźwięki"); $("#soundToggle").title = soundEnabled ? "Dźwięki włączone" : "Dźwięki wyłączone"; });
 $("#soundSettings").addEventListener("click", openSoundMessages);
@@ -2763,14 +2863,15 @@ $("#quizForm").addEventListener("submit", saveCreatedQuiz);
 // ── Export / Import ───────────────────────────────────────────────────────────
 function exportData() {
   const data = {
-    version: 1,
+    version: 2,
     exported: new Date().toISOString(),
     quizzes:       JSON.parse(localStorage.getItem(STORAGE_KEY)               || "[]"),
     categories:    JSON.parse(localStorage.getItem(CATEGORIES_STORAGE_KEY)    || "[]"),
     soundMessages: JSON.parse(localStorage.getItem(SOUND_MESSAGES_STORAGE_KEY)|| "null"),
     dailyWords:    JSON.parse(localStorage.getItem(DAILY_WORDS_STORAGE_KEY)   || "null"),
     autoAdvance:   localStorage.getItem(AUTO_ADVANCE_STORAGE_KEY),
-    theme:         localStorage.getItem(THEME_STORAGE_KEY)
+    theme:         localStorage.getItem(THEME_STORAGE_KEY),
+    progress:      sanitizeQuizProgress(progressData, MAX_PROGRESS_ATTEMPTS)
   };
   const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
   const url  = URL.createObjectURL(blob);
@@ -2781,38 +2882,76 @@ function exportData() {
   URL.revokeObjectURL(url);
 }
 
+function replaceLocalStorageEntries(entries) {
+  const previous = entries.map(([key]) => [key, localStorage.getItem(key)]);
+  try {
+    entries.forEach(([key, value]) => {
+      if (value === null) localStorage.removeItem(key);
+      else localStorage.setItem(key, value);
+    });
+  } catch (error) {
+    previous.forEach(([key, value]) => {
+      try {
+        if (value === null) localStorage.removeItem(key);
+        else localStorage.setItem(key, value);
+      } catch {}
+    });
+    throw error;
+  }
+}
+
 function importData(event) {
   const file = event.target.files[0];
   if (!file) return;
   event.target.value = "";
   const reader = new FileReader();
   reader.onload = async e => {
+    let importedQuizzes;
+    let count;
     try {
       const data = JSON.parse(e.target.result);
-      if (!Array.isArray(data.quizzes)) throw new Error("bad format");
-      const count = data.quizzes.length;
+      if (!data || typeof data !== "object" || Array.isArray(data) || !isValidImportedQuizCollection(data.quizzes)) throw new Error("bad format");
+      if (data.categories != null && (!Array.isArray(data.categories) || data.categories.some(category => typeof category !== "string"))) throw new Error("bad categories format");
+      if (data.soundMessages != null && (typeof data.soundMessages !== "object" || Array.isArray(data.soundMessages) || Object.values(data.soundMessages).some(message => typeof message !== "string"))) throw new Error("bad sound format");
+      if (data.dailyWords != null && (!Array.isArray(data.dailyWords) || data.dailyWords.some(item => !item || typeof item.word !== "string" || typeof item.translation !== "string" || (item.pronunciation != null && typeof item.pronunciation !== "string")))) throw new Error("bad daily words format");
+      if (data.progress != null && (typeof data.progress !== "object" || Array.isArray(data.progress) || Object.values(data.progress).some(attempts => !Array.isArray(attempts)))) throw new Error("bad progress format");
+      const importedQuizIds = new Set(data.quizzes.map(quiz => String(quiz?.id || "")).filter(Boolean));
+      const importedProgress = Object.fromEntries(Object.entries(sanitizeQuizProgress(data.progress || {}, MAX_PROGRESS_ATTEMPTS)).filter(([quizId]) => importedQuizIds.has(quizId)));
+      const importedCategories = Array.isArray(data.categories) ? data.categories : [];
+      count = data.quizzes.length;
       if (!confirm(`Importować ${count} ${count === 1 ? "test" : "testów"}?\nIstniejące dane zostaną zastąpione.`)) return;
-      if (Array.isArray(data.quizzes))       localStorage.setItem(STORAGE_KEY,                JSON.stringify(data.quizzes));
-      if (Array.isArray(data.categories))    localStorage.setItem(CATEGORIES_STORAGE_KEY,     JSON.stringify(data.categories));
-      if (data.soundMessages)                localStorage.setItem(SOUND_MESSAGES_STORAGE_KEY, JSON.stringify(data.soundMessages));
-      if (data.dailyWords)                   localStorage.setItem(DAILY_WORDS_STORAGE_KEY,    JSON.stringify(data.dailyWords));
-      if (data.autoAdvance != null)          localStorage.setItem(AUTO_ADVANCE_STORAGE_KEY,   data.autoAdvance);
-      if (data.theme)                        localStorage.setItem(THEME_STORAGE_KEY,          data.theme);
-      quizzes = data.quizzes;
-      customCategories = Array.isArray(data.categories) ? data.categories : loadCategories();
+      const updates = [
+        [STORAGE_KEY, JSON.stringify(data.quizzes)],
+        [CATEGORIES_STORAGE_KEY, JSON.stringify(importedCategories)],
+        [PROGRESS_STORAGE_KEY, JSON.stringify(importedProgress)],
+      ];
+      if (data.soundMessages) updates.push([SOUND_MESSAGES_STORAGE_KEY, JSON.stringify(data.soundMessages)]);
+      if (data.dailyWords) updates.push([DAILY_WORDS_STORAGE_KEY, JSON.stringify(data.dailyWords)]);
+      if (data.autoAdvance != null) updates.push([AUTO_ADVANCE_STORAGE_KEY, String(data.autoAdvance)]);
+      if (data.theme) updates.push([THEME_STORAGE_KEY, String(data.theme)]);
+      replaceLocalStorageEntries(updates);
+      importedQuizzes = data.quizzes;
+      quizzes = importedQuizzes;
+      progressData = importedProgress;
+      customCategories = importedCategories;
       soundMessages = loadSoundMessages();
       dailyWords = loadDailyWords();
       autoAdvanceSeconds = loadAutoAdvanceSeconds();
       applyTheme(data.theme || localStorage.getItem(THEME_STORAGE_KEY) || "forest");
-      if (window.firebaseDB?.getCurrentUser?.()) {
-        if (typeof window.firebaseDB.replaceAllQuizzes !== "function") throw new Error("cloud sync unavailable");
-        await window.firebaseDB.replaceAllQuizzes(quizzes);
-      }
       activeCategory = "all";
       renderQuizGrid();
       showToast(`Zaimportowano ${count} ${count === 1 ? "test" : "testów"}`);
     } catch {
       alert("Błąd: nie udało się wczytać pliku.\nUpewnij się, że to plik eksportu z Bright English.");
+      return;
+    }
+    if (window.firebaseDB?.getCurrentUser?.()) {
+      try {
+        if (typeof window.firebaseDB.replaceAllQuizzes !== "function") throw new Error("cloud sync unavailable");
+        await window.firebaseDB.replaceAllQuizzes(importedQuizzes);
+      } catch {
+        showToast("Dane zaimportowano lokalnie, ale synchronizacja z chmurą nie powiodła się");
+      }
     }
   };
   reader.readAsText(file);
@@ -2827,7 +2966,7 @@ function mergeQuizzes(event) {
     try {
       const data = JSON.parse(e.target.result);
       const incoming = Array.isArray(data) ? data : Array.isArray(data.quizzes) ? data.quizzes : null;
-      if (!incoming || !incoming.length) throw new Error("no quizzes");
+      if (!incoming || !incoming.length || !isValidImportedQuizCollection(incoming)) throw new Error("no quizzes");
       const existingIds = new Set(quizzes.map(q => q.id));
       let added = 0;
       incoming.forEach(q => {
